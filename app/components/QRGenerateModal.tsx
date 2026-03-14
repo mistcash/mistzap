@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import dynamic from "next/dynamic";
 import { useApp } from "@/app/context/AppContext";
-import { deriveQRPayload, incrementQRIndex } from "@/lib/crypto";
+import { generateQRPayloadForIndex, incrementQRIndex } from "@/lib/crypto";
 
 // QRCodeSVG is safe to import server-side; QRCodeCanvas needs client only
 const QRCodeSVG = dynamic(
@@ -16,22 +16,23 @@ interface Props {
 }
 
 export default function QRGenerateModal({ onClose }: Props) {
-  const { secretKey, qrIndex, refreshQRIndex } = useApp();
+  const { walletAddress, qrIndex, refreshQRIndex } = useApp();
   const [payload, setPayload] = useState<string>("");
   const [currentIndex, setCurrentIndex] = useState(qrIndex);
   const generated = useRef(false);
 
   // Generate QR payload once on mount; increment index each time modal opens
   useEffect(() => {
-    if (generated.current || !secretKey) return;
+    if (generated.current || !walletAddress) return;
     generated.current = true;
 
     const newIndex = incrementQRIndex();
     refreshQRIndex();
     setCurrentIndex(newIndex);
 
-    deriveQRPayload(secretKey, newIndex).then(setPayload);
-  }, [secretKey, refreshQRIndex]);
+    // The crypto helper derives the wallet secret internally and only returns the one-time payload.
+    generateQRPayloadForIndex(walletAddress, newIndex).then(setPayload);
+  }, [walletAddress, refreshQRIndex]);
 
   return (
     <div
@@ -85,7 +86,7 @@ export default function QRGenerateModal({ onClose }: Props) {
           {/* Payload preview */}
           <div className="w-full rounded-xl border border-white/10 bg-white/5 p-3">
             <p className="mb-1 text-xs font-medium text-zinc-500 uppercase tracking-wider">
-              Secret (index #{currentIndex})
+              Payload (index #{currentIndex})
             </p>
             <p className="break-all font-mono text-xs text-violet-300">
               {payload || "Generating…"}

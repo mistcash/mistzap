@@ -10,7 +10,7 @@ import React, {
 } from "react";
 import type { WalletInterface } from "starkzap";
 import { connectWithCartridge, disconnectWallet, getUSDCBalance } from "@/lib/starkzap";
-import { generateSecretKey, getQRIndex } from "@/lib/crypto";
+import { getQRIndex } from "@/lib/crypto";
 import type { PaymentActivity } from "@/lib/config";
 
 export type Screen = "login" | "home" | "payment";
@@ -18,7 +18,6 @@ export type Screen = "login" | "home" | "payment";
 interface AppState {
   screen: Screen;
   walletAddress: string | null;
-  secretKey: string | null;
   qrIndex: number;
   scannedPayload: string | null;
   balance: string;
@@ -69,7 +68,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<AppState>({
     screen: "login",
     walletAddress: null,
-    secretKey: null,
     qrIndex: 0,
     scannedPayload: null,
     balance: "— USDC",
@@ -82,14 +80,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   async function hydrateFromWallet(wallet: WalletInterface) {
     walletRef.current = wallet;
     const address = wallet.address;
-    const [secretKey, balance] = await Promise.all([
-      generateSecretKey(address),
-      getUSDCBalance(wallet),
-    ]);
+    const balance = await getUSDCBalance(wallet);
     setState((s) => ({
       ...s,
       walletAddress: address,
-      secretKey,
       qrIndex: getQRIndex(),
       balance,
       screen: "home",
@@ -127,7 +121,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setState((s) => ({
       ...s,
       walletAddress: null,
-      secretKey: null,
       screen: "login",
       scannedPayload: null,
       connectError: null,

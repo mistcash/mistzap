@@ -48,6 +48,18 @@ export async function deriveQRPayload(
   return "0x" + hashArray.slice(0, 31).map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
+/**
+ * Returns a one-time QR payload for a wallet + index without exposing the raw secret key
+ * to UI components. Secret derivation remains internal to this module.
+ */
+export async function generateQRPayloadForIndex(
+  walletAddress: string,
+  index: number
+): Promise<string> {
+  const secretKey = await generateSecretKey(walletAddress);
+  return deriveQRPayload(secretKey, index);
+}
+
 /** Gets the current QR index from localStorage */
 export function getQRIndex(): number {
   if (typeof window === "undefined") return 0;
