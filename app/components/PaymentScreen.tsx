@@ -124,12 +124,12 @@ export default function PaymentScreen() {
       </header>
 
       <main className="w-full max-w-sm flex-1 space-y-5 px-5 pt-6 pb-10">
-        {/* Scanned commitment */}
+        {/* Scanned Transaction Secret */}
         <div className="rounded-2xl border border-violet-500/20 bg-violet-500/10 p-4">
           <div className="flex items-center gap-2 mb-2">
             <div className="h-2 w-2 rounded-full bg-violet-400 animate-pulse" />
             <p className="text-xs font-semibold uppercase tracking-wider text-violet-400">
-              Scanned Commitment
+              Scanned Transaction Secret
             </p>
           </div>
           <p className="break-all font-mono text-sm text-white leading-relaxed">
