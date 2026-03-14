@@ -11,12 +11,38 @@ export default function QRScanModal({ onClose }: Props) {
   const { openPayment } = useApp();
   const containerRef = useRef<HTMLDivElement>(null);
   const scannerRef = useRef<unknown>(null);
+  const scannerRunningRef = useRef(false);
+  const stopInProgressRef = useRef(false);
   const [status, setStatus] = useState<"starting" | "scanning" | "error">("starting");
   const [errorMsg, setErrorMsg] = useState("");
   const scannedRef = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
+
+    async function safeStopScanner() {
+      const s = scannerRef.current as {
+        stop?: () => Promise<void>;
+        clear?: () => void;
+      } | null;
+
+      if (!s || !scannerRunningRef.current || stopInProgressRef.current) {
+        return;
+      }
+
+      stopInProgressRef.current = true;
+      try {
+        try {
+          await s.stop?.();
+        } catch {
+          // html5-qrcode may reject/throw if already stopped; ignore during teardown.
+        }
+      } finally {
+        scannerRunningRef.current = false;
+        stopInProgressRef.current = false;
+        s.clear?.();
+      }
+    }
 
     async function startScanner() {
       try {
@@ -37,20 +63,20 @@ export default function QRScanModal({ onClose }: Props) {
             if (scannedRef.current) return;
             scannedRef.current = true;
 
-            scanner
-              .stop()
-              .catch(() => {})
-              .finally(() => {
-                openPayment(decodedText);
-                onClose();
-              });
+            safeStopScanner().finally(() => {
+              openPayment(decodedText);
+              onClose();
+            });
           },
           () => {
             // ignore per-frame errors
           }
         );
 
-        if (!cancelled) setStatus("scanning");
+        if (!cancelled) {
+          scannerRunningRef.current = true;
+          setStatus("scanning");
+        }
       } catch (err) {
         if (!cancelled) {
           setStatus("error");
@@ -65,15 +91,7 @@ export default function QRScanModal({ onClose }: Props) {
 
     return () => {
       cancelled = true;
-      const s = scannerRef.current as {
-        stop?: () => Promise<void>;
-        clear?: () => void;
-      } | null;
-      if (s) {
-        s.stop?.()
-          .catch(() => {})
-          .finally(() => s.clear?.());
-      }
+      void safeStopScanner();
     };
   }, [openPayment, onClose]);
 
