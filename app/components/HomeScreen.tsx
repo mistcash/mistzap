@@ -59,8 +59,9 @@ export default function HomeScreen() {
             <p className="text-sm font-medium text-violet-200/70">
               Total Balance
             </p>
-            <p className="mt-1 text-4xl font-bold tracking-tight text-white">
-              {balance}
+            <p className="mt-1 text-4xl font-bold tracking-tight text-white" data-amt={balance}>
+              {balance.replace(/[^\d.]/g, '')}
+              <span className="text-lg font-medium text-white/70"> USDC</span>
             </p>
           </div>
           {/* Decorative circle */}
