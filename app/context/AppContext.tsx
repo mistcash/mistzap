@@ -5,8 +5,11 @@ import React, {
   useContext,
   useState,
   useCallback,
+  useRef,
   useEffect,
 } from "react";
+import type { WalletInterface } from "starkzap";
+import { connectWithCartridge, disconnectWallet, getETHBalance } from "@/lib/starkzap";
 import { generateSecretKey, getQRIndex } from "@/lib/crypto";
 import type { PaymentActivity } from "@/lib/config";
 
@@ -20,20 +23,20 @@ interface AppState {
   scannedPayload: string | null;
   balance: string;
   activity: PaymentActivity[];
-  isLoadingKey: boolean;
+  isConnecting: boolean;
+  connectError: string | null;
 }
 
 interface AppActions {
-  login: (address: string) => Promise<void>;
-  logout: () => void;
+  connectCartridge: () => Promise<void>;
+  logout: () => Promise<void>;
   openPayment: (payload: string) => void;
   closePayment: () => void;
   refreshQRIndex: () => void;
+  getWallet: () => WalletInterface | null;
 }
 
 const AppContext = createContext<(AppState & AppActions) | null>(null);
-
-const WALLET_KEY = "starkzap_wallet";
 
 const MOCK_ACTIVITY: PaymentActivity[] = [
   {
@@ -41,76 +44,93 @@ const MOCK_ACTIVITY: PaymentActivity[] = [
     type: "received",
     amount: "0.05 ETH",
     address: "0x049d3657...04dc7",
-    timestamp: Date.now() - 3600_000,
+    timestamp: Date.now() - 3_600_000,
   },
   {
     id: "2",
     type: "sent",
     amount: "0.02 ETH",
     address: "0x04718f5a...b7dc",
-    timestamp: Date.now() - 86400_000,
+    timestamp: Date.now() - 86_400_000,
   },
   {
     id: "3",
     type: "received",
     amount: "0.1 ETH",
     address: "0x06b5f6b3...a1e8",
-    timestamp: Date.now() - 172800_000,
+    timestamp: Date.now() - 172_800_000,
   },
 ];
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
+  // Keep the live WalletInterface in a ref so it never triggers re-renders
+  const walletRef = useRef<WalletInterface | null>(null);
+
   const [state, setState] = useState<AppState>({
     screen: "login",
     walletAddress: null,
     secretKey: null,
     qrIndex: 0,
     scannedPayload: null,
-    balance: "0.157 ETH",
+    balance: "— ETH",
     activity: MOCK_ACTIVITY,
-    isLoadingKey: false,
+    isConnecting: false,
+    connectError: null,
   });
 
-  // Auto-restore session from localStorage
-  useEffect(() => {
-    const saved = localStorage.getItem(WALLET_KEY);
-    if (saved) {
-      setState((s) => ({ ...s, isLoadingKey: true }));
-      generateSecretKey(saved).then((key) => {
-        setState((s) => ({
-          ...s,
-          walletAddress: saved,
-          secretKey: key,
-          qrIndex: getQRIndex(),
-          screen: "home",
-          isLoadingKey: false,
-        }));
-      });
-    }
-  }, []);
-
-  const login = useCallback(async (address: string) => {
-    setState((s) => ({ ...s, isLoadingKey: true }));
-    const key = await generateSecretKey(address);
-    localStorage.setItem(WALLET_KEY, address);
+  /** After a wallet is connected, hydrate app state from it */
+  async function hydrateFromWallet(wallet: WalletInterface) {
+    walletRef.current = wallet;
+    const address = wallet.address;
+    const [secretKey, balance] = await Promise.all([
+      generateSecretKey(address),
+      getETHBalance(wallet),
+    ]);
     setState((s) => ({
       ...s,
       walletAddress: address,
-      secretKey: key,
+      secretKey,
       qrIndex: getQRIndex(),
+      balance,
       screen: "home",
-      isLoadingKey: false,
+      isConnecting: false,
+      connectError: null,
     }));
+  }
+
+  // On mount: if the Cartridge controller already has a session, skip login
+  useEffect(() => {
+    // Cartridge sessions are ephemeral per page load; no auto-reconnect needed.
   }, []);
 
-  const logout = useCallback(() => {
-    localStorage.removeItem(WALLET_KEY);
+  const connectCartridge = useCallback(async () => {
+    setState((s) => ({ ...s, isConnecting: true, connectError: null }));
+    try {
+      const wallet = await connectWithCartridge();
+      await hydrateFromWallet(wallet);
+    } catch (err) {
+      const msg =
+        err instanceof Error ? err.message : "Connection failed. Try again.";
+      setState((s) => ({
+        ...s,
+        isConnecting: false,
+        connectError: msg,
+      }));
+    }
+  }, []);
+
+  const logout = useCallback(async () => {
+    if (walletRef.current) {
+      await disconnectWallet(walletRef.current).catch(() => {});
+      walletRef.current = null;
+    }
     setState((s) => ({
       ...s,
       walletAddress: null,
       secretKey: null,
       screen: "login",
       scannedPayload: null,
+      connectError: null,
     }));
   }, []);
 
@@ -126,9 +146,19 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setState((s) => ({ ...s, qrIndex: getQRIndex() }));
   }, []);
 
+  const getWallet = useCallback(() => walletRef.current, []);
+
   return (
     <AppContext.Provider
-      value={{ ...state, login, logout, openPayment, closePayment, refreshQRIndex }}
+      value={{
+        ...state,
+        connectCartridge,
+        logout,
+        openPayment,
+        closePayment,
+        refreshQRIndex,
+        getWallet,
+      }}
     >
       {children}
     </AppContext.Provider>
