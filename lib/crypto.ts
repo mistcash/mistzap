@@ -37,7 +37,7 @@ export async function generateSecretKey(walletAddress: string): Promise<string> 
  * Returns a one-time QR payload for a wallet + index without exposing the raw secret key
  * to UI components. Secret derivation remains internal to this module.
  */
-export async function generateQRPayloadForIndex(
+export async function generateClaimingKeyForIndex(
   walletAddress: string,
   index: number
 ): Promise<string> {
@@ -49,6 +49,19 @@ export async function generateQRPayloadForIndex(
   const hashArray = Array.from(new Uint8Array(hashBuffer));
   // Truncate to 31 bytes to fit in a Starknet felt252
   const claimingKey = "0x" + hashArray.slice(0, 31).map((b) => b.toString(16).padStart(2, "0")).join("");
+
+  return claimingKey;
+}
+
+/**
+ * Returns a one-time QR payload for a wallet + index without exposing the raw secret key
+ * to UI components. Secret derivation remains internal to this module.
+ */
+export async function generateQRPayloadForIndex(
+  walletAddress: string,
+  index: number
+): Promise<string> {
+  const claimingKey = await generateClaimingKeyForIndex(walletAddress, index);
 
   // Generate transaction secret commitment used by deposit.
   // SDK docs define this as hashing recipient wallet + claiming key.
