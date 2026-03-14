@@ -9,7 +9,7 @@ import React, {
   useEffect,
 } from "react";
 import type { WalletInterface } from "starkzap";
-import { connectWithCartridge, disconnectWallet, getETHBalance } from "@/lib/starkzap";
+import { connectWithCartridge, disconnectWallet, getUSDCBalance } from "@/lib/starkzap";
 import { generateSecretKey, getQRIndex } from "@/lib/crypto";
 import type { PaymentActivity } from "@/lib/config";
 
@@ -42,21 +42,21 @@ const MOCK_ACTIVITY: PaymentActivity[] = [
   {
     id: "1",
     type: "received",
-    amount: "0.05 ETH",
+    amount: "10.00 USDC",
     address: "0x049d3657...04dc7",
     timestamp: Date.now() - 3_600_000,
   },
   {
     id: "2",
     type: "sent",
-    amount: "0.02 ETH",
+    amount: "5.00 USDC",
     address: "0x04718f5a...b7dc",
     timestamp: Date.now() - 86_400_000,
   },
   {
     id: "3",
     type: "received",
-    amount: "0.1 ETH",
+    amount: "25.00 USDC",
     address: "0x06b5f6b3...a1e8",
     timestamp: Date.now() - 172_800_000,
   },
@@ -72,7 +72,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     secretKey: null,
     qrIndex: 0,
     scannedPayload: null,
-    balance: "— ETH",
+    balance: "— USDC",
     activity: MOCK_ACTIVITY,
     isConnecting: false,
     connectError: null,
@@ -84,7 +84,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const address = wallet.address;
     const [secretKey, balance] = await Promise.all([
       generateSecretKey(address),
-      getETHBalance(wallet),
+      getUSDCBalance(wallet),
     ]);
     setState((s) => ({
       ...s,
