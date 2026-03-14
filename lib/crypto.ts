@@ -1,5 +1,7 @@
 // Deterministic secret key generation for StarkZap
 
+import { hash2 } from "@mistcash/sdk";
+
 const DEVICE_ID_KEY = "starkzap_device_id";
 const QR_INDEX_KEY = "starkzap_qr_index";
 
@@ -32,23 +34,6 @@ export async function generateSecretKey(walletAddress: string): Promise<string> 
 }
 
 /**
- * Derives a unique QR payload for a given secret key + index.
- * Each scan increments the index so each QR code is one-time-use.
- */
-export async function deriveQRPayload(
-  secretKey: string,
-  index: number
-): Promise<string> {
-  const indexHex = index.toString(16).padStart(8, "0");
-  const combined = `${secretKey}:${indexHex}`;
-  const encoded = new TextEncoder().encode(combined);
-  const hashBuffer = await crypto.subtle.digest("SHA-256", encoded);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  // Truncate to 31 bytes to fit in a Starknet felt252
-  return "0x" + hashArray.slice(0, 31).map((b) => b.toString(16).padStart(2, "0")).join("");
-}
-
-/**
  * Returns a one-time QR payload for a wallet + index without exposing the raw secret key
  * to UI components. Secret derivation remains internal to this module.
  */
@@ -57,7 +42,19 @@ export async function generateQRPayloadForIndex(
   index: number
 ): Promise<string> {
   const secretKey = await generateSecretKey(walletAddress);
-  return deriveQRPayload(secretKey, index);
+  const indexHex = index.toString(16).padStart(8, "0");
+  const combined = `${secretKey}:${indexHex}`;
+  const encoded = new TextEncoder().encode(combined);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", encoded);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  // Truncate to 31 bytes to fit in a Starknet felt252
+  const claimingKey = "0x" + hashArray.slice(0, 31).map((b) => b.toString(16).padStart(2, "0")).join("");
+
+  // Generate transaction secret commitment used by deposit.
+  // SDK docs define this as hashing recipient wallet + claiming key.
+  const txSecret = await hash2(walletAddress, claimingKey);
+
+  return txSecret;
 }
 
 /** Gets the current QR index from localStorage */
