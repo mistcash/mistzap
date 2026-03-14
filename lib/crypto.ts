@@ -52,7 +52,7 @@ export async function generateQRPayloadForIndex(
 
   // Generate transaction secret commitment used by deposit.
   // SDK docs define this as hashing recipient wallet + claiming key.
-  const txSecret = await hash2(walletAddress, claimingKey);
+  const txSecret = '0x' + BigInt(await hash2(walletAddress, claimingKey)).toString(16);
 
   return txSecret;
 }
