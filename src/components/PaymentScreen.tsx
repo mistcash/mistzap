@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useAccount, useContract, useSendTransaction } from "@starknet-react/core";
-import { HIDEMI_CONTRACT_ADDRESS, HIDEMI_ABI, AVNU_API_KEY } from "@/lib/config";
+import { useAccount, useContract, usePaymasterSendTransaction } from "@starknet-react/core";
+import { HIDEMI_CONTRACT_ADDRESS, HIDEMI_ABI } from "@/lib/config";
 
 interface Props {
   txSecret: string;
@@ -20,8 +20,11 @@ export default function PaymentScreen({ txSecret, onClose }: Props) {
     abi: HIDEMI_ABI,
   });
 
-  const { sendAsync } = useSendTransaction({
+  const { sendAsync } = usePaymasterSendTransaction({
     calls: [],
+    options: {
+      feeMode: { mode: "sponsored" },
+    },
   });
 
   const handleDeposit = async () => {
