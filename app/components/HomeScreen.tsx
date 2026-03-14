@@ -53,17 +53,14 @@ export default function HomeScreen() {
         </div>
 
         {/* Balance card */}
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-violet-600/80 to-purple-800/80 p-6 shadow-xl shadow-violet-500/20">
-          <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent" />
+        <div className="relative overflow-hidden rounded-2xl bg-linear-to-br from-violet-600/80 to-purple-800/80 p-6 shadow-xl shadow-violet-500/20">
+          <div className="absolute inset-0 bg-linear-to-br from-white/5 to-transparent" />
           <div className="relative">
             <p className="text-sm font-medium text-violet-200/70">
               Total Balance
             </p>
             <p className="mt-1 text-4xl font-bold tracking-tight text-white">
               {balance}
-            </p>
-            <p className="mt-1 text-sm text-violet-200/50">
-              ≈ $412.80 USD
             </p>
           </div>
           {/* Decorative circle */}
@@ -141,9 +138,8 @@ function ActivityRow({
   return (
     <div className="flex items-center gap-3 rounded-xl border border-white/5 bg-white/5 px-4 py-3">
       <div
-        className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full ${
-          sent ? "bg-red-500/15" : "bg-emerald-500/15"
-        }`}
+        className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full ${sent ? "bg-red-500/15" : "bg-emerald-500/15"
+          }`}
       >
         {sent ? (
           <ArrowUpIcon className="h-4 w-4 text-red-400" />
@@ -161,9 +157,8 @@ function ActivityRow({
       </div>
       <div className="text-right">
         <p
-          className={`text-sm font-semibold ${
-            sent ? "text-red-400" : "text-emerald-400"
-          }`}
+          className={`text-sm font-semibold ${sent ? "text-red-400" : "text-emerald-400"
+            }`}
         >
           {sent ? "-" : "+"}
           {item.amount}

@@ -121,7 +121,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const logout = useCallback(async () => {
     if (walletRef.current) {
-      await disconnectWallet(walletRef.current).catch(() => {});
+      await disconnectWallet(walletRef.current).catch(() => { });
       walletRef.current = null;
     }
     setState((s) => ({
