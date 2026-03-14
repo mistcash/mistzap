@@ -57,13 +57,13 @@ export async function disconnectWallet(wallet: WalletInterface): Promise<void> {
 }
 
 /**
- * Read the ETH balance for a wallet using the starkzap erc20 helper.
+ * Read the USDC balance for a wallet using the starkzap erc20 helper.
  */
-export async function getETHBalance(wallet: WalletInterface): Promise<string> {
+export async function getUSDCBalance(wallet: WalletInterface): Promise<string> {
   try {
-    const amount = await wallet.balanceOf(mainnetTokens.ETH);
+    const amount = await wallet.balanceOf(mainnetTokens.USDC);
     return amount.toFormatted(true);
   } catch {
-    return "— ETH";
+    return "— USDC";
   }
 }

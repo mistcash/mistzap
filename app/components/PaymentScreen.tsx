@@ -1,18 +1,35 @@
 "use client";
 
 import { useState } from "react";
-import { CallData } from "starknet";
+import { CallData, uint256 } from "starknet";
 import { useApp } from "@/app/context/AppContext";
-import { HIDEMI_CONTRACT_ADDRESS } from "@/lib/config";
+import { HIDEMI_CONTRACT_ADDRESS, USDC_ADDRESS } from "@/lib/config";
 import { truncateAddress } from "@/lib/crypto";
 
 type TxStatus = "idle" | "preflight" | "executing" | "success" | "error";
+
+// USDC has 6 decimal places
+const USDC_DECIMALS = 6;
+
+function parseUSDCAmount(input: string): bigint | null {
+  const trimmed = input.trim();
+  if (!trimmed || isNaN(Number(trimmed)) || Number(trimmed) <= 0) return null;
+  const parts = trimmed.split(".");
+  const whole = BigInt(parts[0] || "0");
+  let frac = BigInt(0);
+  if (parts[1] !== undefined) {
+    const fracStr = parts[1].slice(0, USDC_DECIMALS).padEnd(USDC_DECIMALS, "0");
+    frac = BigInt(fracStr);
+  }
+  return whole * BigInt(10 ** USDC_DECIMALS) + frac;
+}
 
 export default function PaymentScreen() {
   const { scannedPayload, walletAddress, closePayment, getWallet } = useApp();
   const [txStatus, setTxStatus] = useState<TxStatus>("idle");
   const [txHash, setTxHash] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
+  const [usdcAmount, setUsdcAmount] = useState("");
 
   const commitment = scannedPayload ?? "";
 
@@ -20,19 +37,45 @@ export default function PaymentScreen() {
     const wallet = getWallet();
     if (!wallet || !commitment) return;
 
+    const amountBase = parseUSDCAmount(usdcAmount);
+    if (amountBase === null) {
+      setErrorMsg("Enter a valid USDC amount greater than 0.");
+      setTxStatus("error");
+      return;
+    }
+
     setTxStatus("preflight");
     setErrorMsg("");
 
+    const amountU256 = uint256.bnToUint256(amountBase);
+    const hashU256 = uint256.bnToUint256(BigInt(commitment));
+
     const calls = [
+      // Step 1: approve Hidemi to spend USDC
+      {
+        contractAddress: USDC_ADDRESS,
+        entrypoint: "approve",
+        calldata: CallData.compile({
+          spender: HIDEMI_CONTRACT_ADDRESS,
+          amount: amountU256,
+        }),
+      },
+      // Step 2: deposit — locks funds behind the scanned secret commitment
       {
         contractAddress: HIDEMI_CONTRACT_ADDRESS,
         entrypoint: "deposit",
-        calldata: CallData.compile({ commitment }),
+        calldata: CallData.compile({
+          hash: hashU256,
+          asset: {
+            amount: amountU256,
+            addr: USDC_ADDRESS,
+          },
+        }),
       },
     ];
 
     try {
-      // Step 1: preflight — simulate the tx before spending gas
+      // Preflight — simulate before spending gas
       const pre = await wallet.preflight({ calls, feeMode: "sponsored" });
       if (!pre.ok) {
         setErrorMsg(`Preflight failed: ${(pre as { reason?: string }).reason ?? "unknown"}`);
@@ -40,7 +83,7 @@ export default function PaymentScreen() {
         return;
       }
 
-      // Step 2: execute sponsored via AVNU paymaster
+      // Execute sponsored via AVNU paymaster
       setTxStatus("executing");
       const tx = await wallet.execute(calls, { feeMode: "sponsored" });
 
@@ -52,7 +95,6 @@ export default function PaymentScreen() {
       setTxStatus("success");
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Transaction failed";
-      // Map to user-friendly error classes from the starkzap skill
       if (msg.includes("not deployed")) {
         setErrorMsg("Account not deployed. Reconnect via Cartridge to auto-deploy.");
       } else if (msg.includes("timed out") || msg.includes("429")) {
@@ -95,11 +137,32 @@ export default function PaymentScreen() {
           </p>
         </div>
 
+        {/* USDC amount input */}
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-2">
+          <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
+            USDC Amount
+          </label>
+          <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2">
+            <input
+              type="number"
+              min="0"
+              step="0.000001"
+              placeholder="0.00"
+              value={usdcAmount}
+              onChange={(e) => setUsdcAmount(e.target.value)}
+              disabled={busy || txStatus === "success"}
+              className="flex-1 bg-transparent text-sm font-mono text-white placeholder-zinc-600 outline-none disabled:opacity-50"
+            />
+            <span className="text-xs font-semibold text-zinc-400">USDC</span>
+          </div>
+        </div>
+
         {/* TX details */}
         <div className="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-3">
           <h3 className="text-sm font-semibold text-white">Transaction Details</h3>
           <InfoRow label="Contract" value={truncateAddress(HIDEMI_CONTRACT_ADDRESS, 8)} mono />
           <InfoRow label="Entrypoint" value="deposit" mono />
+          <InfoRow label="Asset" value={`USDC (${truncateAddress(USDC_ADDRESS, 6)})`} mono />
           <InfoRow label="From" value={walletAddress ? truncateAddress(walletAddress, 8) : "—"} mono />
           <InfoRow label="Fee mode" value="Sponsored (AVNU)" />
         </div>
@@ -124,7 +187,7 @@ export default function PaymentScreen() {
         {/* Deposit button */}
         <button
           onClick={handleDeposit}
-          disabled={busy || txStatus === "success" || !commitment || !getWallet()}
+          disabled={busy || txStatus === "success" || !commitment || !getWallet() || !usdcAmount}
           className="w-full rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 py-4 text-sm font-semibold text-white shadow-lg shadow-violet-500/25 transition-all hover:from-violet-500 hover:to-purple-500 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {busy ? (
@@ -135,7 +198,7 @@ export default function PaymentScreen() {
           ) : txStatus === "success" ? (
             "Deposited!"
           ) : (
-            "Deposit"
+            "Deposit USDC"
           )}
         </button>
 
