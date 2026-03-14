@@ -9,9 +9,13 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@avnu/avnu-sdk": "^4.0.1",
+    "html5-qrcode": "^2.3.8",
     "next": "16.1.6",
+    "qrcode.react": "^4.2.0",
     "react": "19.2.3",
-    "react-dom": "19.2.3"
+    "react-dom": "19.2.3",
+    "starknet": "^9.4.2"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
