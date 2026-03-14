@@ -5,9 +5,9 @@
  * and provides the Cartridge-based login flow for web.
  */
 
-import { StarkSDK, OnboardStrategy } from "starkzap";
+import { StarkSDK, OnboardStrategy, mainnetTokens } from "starkzap";
 import type { WalletInterface } from "starkzap";
-import { AVNU_API_KEY, AVNU_BASE_URL, HIDEMI_CONTRACT_ADDRESS, USDC_ADDRESS } from "./config";
+import { AVNU_API_KEY, AVNU_BASE_URL, HIDEMI_CONTRACT_ADDRESS } from "./config";
 
 // Module-level singleton so the SDK isn't recreated on every login attempt
 let _sdk: StarkSDK | null = null;
@@ -61,7 +61,7 @@ export async function disconnectWallet(wallet: WalletInterface): Promise<void> {
  */
 export async function getUSDCBalance(wallet: WalletInterface): Promise<string> {
   try {
-    const amount = await wallet.balanceOf(USDC_ADDRESS);
+    const amount = await wallet.balanceOf(mainnetTokens.USDC);
     return amount.toFormatted(true);
   } catch {
     return "— USDC";
