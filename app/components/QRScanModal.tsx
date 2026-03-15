@@ -49,7 +49,7 @@ export default function QRScanModal({ onClose }: Props) {
         const { Html5Qrcode } = await import("html5-qrcode");
         if (cancelled || !containerRef.current) return;
 
-        const scannerId = "starkzap-qr-reader";
+        const scannerId = "mistzap-qr-reader";
         const el = document.getElementById(scannerId);
         if (!el) return;
 
@@ -109,7 +109,7 @@ export default function QRScanModal({ onClose }: Props) {
           <div>
             <h2 className="text-lg font-bold text-white">Scan QR Code</h2>
             <p className="text-xs text-zinc-500 mt-0.5">
-              Point at a StarkZap QR code
+              Point at a MISTzap QR code
             </p>
           </div>
           <button
@@ -123,7 +123,7 @@ export default function QRScanModal({ onClose }: Props) {
         {/* Camera view */}
         <div ref={containerRef} className="relative overflow-hidden rounded-2xl bg-black">
           {/* html5-qrcode mounts into this element */}
-          <div id="starkzap-qr-reader" className="w-full" />
+          <div id="mistzap-qr-reader" className="w-full" />
 
           {/* Overlay when starting */}
           {status === "starting" && (
@@ -174,25 +174,25 @@ export default function QRScanModal({ onClose }: Props) {
           animation: scan 2s ease-in-out infinite;
         }
         /* Override html5-qrcode default styles */
-        #starkzap-qr-reader video {
+        #mistzap-qr-reader video {
           width: 100% !important;
           border-radius: 0 !important;
           border: none !important;
         }
-        #starkzap-qr-reader img {
+        #mistzap-qr-reader img {
           display: none !important;
         }
-        #starkzap-qr-reader button {
+        #mistzap-qr-reader button {
           display: none !important;
         }
-        #starkzap-qr-reader select {
+        #mistzap-qr-reader select {
           display: none !important;
         }
-        #starkzap-qr-reader__scan_region {
+        #mistzap-qr-reader__scan_region {
           border: none !important;
           min-height: 0 !important;
         }
-        #starkzap-qr-reader__dashboard {
+        #mistzap-qr-reader__dashboard {
           display: none !important;
         }
       `}</style>

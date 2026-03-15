@@ -2,6 +2,7 @@
 
 import { useApp } from "@/app/context/AppContext";
 import FooterCredits from "./FooterCredits";
+import Image from "next/image";
 
 export default function LoginScreen() {
   const { connectCartridge, isConnecting, connectError } = useApp();
@@ -17,12 +18,12 @@ export default function LoginScreen() {
       <div className="relative z-10 w-full max-w-sm">
         {/* Logo */}
         <div className="mb-10 flex flex-col items-center gap-3">
-          <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-purple-700 shadow-lg shadow-violet-500/30">
-            <ZapLogo />
+          <div className="flex h-20 w-20 items-center justify-center rounded-2xl from-violet-500 to-purple-700 shadow-lg shadow-violet-500/30">
+            <Image src="/mistzap.png" alt="MISTzap Logo" width={80} height={80} />
           </div>
           <div className="text-center">
             <h1 className="text-3xl font-bold tracking-tight text-white">
-              StarkZap
+              MISTzap
             </h1>
             <p className="mt-1 text-sm text-violet-300/70">
               Private payments on Starknet
@@ -89,36 +90,12 @@ const FEATURES = [
   "Sponsored transactions via AVNU paymaster",
 ];
 
-// --- Icons ---
-
-function ZapLogo() {
-  return (
-    <svg width="44" height="44" viewBox="0 0 44 44" fill="none">
-      <path
-        d="M22 4L38 13V31L22 40L6 31V13L22 4Z"
-        stroke="white"
-        strokeWidth="2.5"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M14 20L20 26L30 16"
-        stroke="white"
-        strokeWidth="2.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
 function CartridgeIcon() {
   // Simple gamepad-like icon representing Cartridge
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="2" y="6" width="20" height="12" rx="3" />
-      <path d="M6 12h4M8 10v4" />
-      <circle cx="16" cy="11" r="1" fill="currentColor" stroke="none" />
-      <circle cx="18" cy="13" r="1" fill="currentColor" stroke="none" />
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 196.3 173" className="block relative w-6 h-6 -my-1">
+      <path fill="#fff" d="M68.5,71.8h63.6v-16.4h-63.6c0,1.6,0,16.6,0,16.4Z"></path>
+      <path fill="#fff" d="M175.9,38.7l-38.9-16.4c-2.6-1.2-5.4-1.9-8.2-2h-57.1c-2.8,0-5.6.8-8.2,2l-38.9,16.4c-3.8,2-6.2,5.9-6.1,10.2v65.6c0,2.1,0,4.1,2.1,6.1l12.3,12.3c2,2.1,3.6,2.1,6.1,2.1h28.2c0,1.8,0,16.5,0,16.4h66.6v-16.4h-66.5v-16.4h-30.2c-1.1,0-2-.9-2-2,0,0,0,0,0,0V38.7c0-1.1.9-2,2-2h126.7c1.1,0,2,.8,2,1.9,0,0,0,0,0,0v77.8c0,1.1-.8,2-1.9,2.1,0,0,0,0-.1,0h-29.9v16.4h27.9c2.6,0,4.1,0,6.1-2.1l12.3-12.3c2-2,2-4.1,2-6.1V48.9c0-4.3-2.3-8.3-6.1-10.2Z"></path>
     </svg>
   );
 }

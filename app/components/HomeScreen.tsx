@@ -6,6 +6,7 @@ import { truncateAddress } from "@/lib/crypto";
 import QRGenerateModal from "./QRGenerateModal";
 import QRScanModal from "./QRScanModal";
 import FooterCredits from "./FooterCredits";
+import Image from "next/image";
 
 export default function HomeScreen() {
   const { walletAddress, balance, activity, logout } = useApp();
@@ -13,28 +14,14 @@ export default function HomeScreen() {
   const [showScan, setShowScan] = useState(false);
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-start bg-gradient-to-br from-[#0a0a1a] via-[#0d0d2b] to-[#12003a]">
+    <div className="flex min-h-screen flex-col items-center justify-start bg-linear-to-br from-[#0a0a1a] via-[#0d0d2b] to-[#12003a]">
       {/* Header */}
       <header className="flex w-full max-w-sm items-center justify-between px-5 pt-10 pb-2">
         <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500 to-purple-700 shadow shadow-violet-500/30">
-            <svg width="18" height="18" viewBox="0 0 44 44" fill="none">
-              <path
-                d="M22 4L38 13V31L22 40L6 31V13L22 4Z"
-                stroke="white"
-                strokeWidth="2.5"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M14 20L20 26L30 16"
-                stroke="white"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-linear-to-br from-violet-500 to-purple-700 shadow shadow-violet-500/30">
+            <Image src="/mistzap.png" alt="MISTzap Logo" width={80} height={80} />
           </div>
-          <span className="font-bold text-white text-lg">StarkZap</span>
+          <span className="font-bold text-white text-lg">MISTzap</span>
         </div>
         <button
           onClick={logout}

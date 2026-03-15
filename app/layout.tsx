@@ -3,7 +3,7 @@ import "./globals.css";
 import { AppProvider } from "@/app/context/AppContext";
 
 export const metadata: Metadata = {
-  title: "StarkZap — Private Payments on Starknet",
+  title: "MISTzap — Private Payments on Starknet",
   description: "Privacy-preserving payment app built on Starknet",
 };
 

@@ -1,4 +1,4 @@
-// StarkZap configuration
+// MISTzap configuration
 export const HIDEMI_CONTRACT_ADDRESS =
   "0x075b21ada56ae65436cc80c616b71f9a9be87ba46e58f2330cf640e459318e11";
 

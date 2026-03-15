@@ -1,5 +1,5 @@
 /**
- * StarkZap SDK singleton and wallet helpers.
+ * MISTzap SDK singleton and wallet helpers.
  *
  * Wraps the starkzap SDK with the AVNU paymaster configured,
  * and provides the Cartridge-based login flow for web.

@@ -1,9 +1,9 @@
-// Deterministic secret key generation for StarkZap
+// Deterministic secret key generation for MISTzap
 
 import { hash2 } from "@mistcash/sdk";
 
-const DEVICE_ID_KEY = "starkzap_device_id";
-const QR_INDEX_KEY = "starkzap_qr_index";
+const DEVICE_ID_KEY = "mistzap_device_id";
+const QR_INDEX_KEY = "mistzap_qr_index";
 
 /** Returns a persistent device identifier stored in localStorage */
 export function getDeviceId(): string {
@@ -26,7 +26,7 @@ export function getDeviceId(): string {
  */
 export async function generateSecretKey(walletAddress: string): Promise<string> {
   const deviceId = getDeviceId();
-  const combined = `starkzap:${walletAddress.toLowerCase()}:${deviceId}`;
+  const combined = `mistzap:${walletAddress.toLowerCase()}:${deviceId}`;
   const encoded = new TextEncoder().encode(combined);
   const hashBuffer = await crypto.subtle.digest("SHA-256", encoded);
   const hashArray = Array.from(new Uint8Array(hashBuffer));
