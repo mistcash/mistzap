@@ -1,6 +1,7 @@
 "use client";
 
 import { useApp } from "@/app/context/AppContext";
+import FooterCredits from "./FooterCredits";
 
 export default function LoginScreen() {
   const { connectCartridge, isConnecting, connectError } = useApp();
@@ -76,9 +77,7 @@ export default function LoginScreen() {
           ))}
         </div>
 
-        <p className="mt-8 text-center text-xs text-zinc-600">
-          Powered by Starknet &middot; Privacy by design
-        </p>
+        <FooterCredits className="mt-8" />
       </div>
     </div>
   );

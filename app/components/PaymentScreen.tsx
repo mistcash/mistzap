@@ -5,6 +5,7 @@ import { CallData, uint256 } from "starknet";
 import { useApp } from "@/app/context/AppContext";
 import { HIDEMI_CONTRACT_ADDRESS, USDC_ADDRESS } from "@/lib/config";
 import { truncateAddress } from "@/lib/crypto";
+import FooterCredits from "./FooterCredits";
 
 type TxStatus = "idle" | "preflight" | "executing" | "success" | "error";
 
@@ -202,9 +203,7 @@ export default function PaymentScreen() {
           )}
         </button>
 
-        <p className="text-center text-xs text-zinc-600">
-          Sponsored via AVNU paymaster &middot; preflight simulated before submit
-        </p>
+        <FooterCredits className="mt-8" />
       </main>
     </div>
   );

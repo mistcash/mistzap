@@ -5,6 +5,7 @@ import { useApp } from "@/app/context/AppContext";
 import { truncateAddress } from "@/lib/crypto";
 import QRGenerateModal from "./QRGenerateModal";
 import QRScanModal from "./QRScanModal";
+import FooterCredits from "./FooterCredits";
 
 export default function HomeScreen() {
   const { walletAddress, balance, activity, logout } = useApp();
@@ -111,6 +112,7 @@ export default function HomeScreen() {
             </div>
           )}
         </div>
+        <FooterCredits />
       </main>
 
       {showQR && <QRGenerateModal onClose={() => setShowQR(false)} />}
