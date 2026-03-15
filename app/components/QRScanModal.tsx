@@ -101,20 +101,20 @@ export default function QRScanModal({ onClose }: Props) {
       <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={onClose} />
 
       {/* Sheet */}
-      <div className="relative z-10 w-full max-w-sm rounded-t-3xl sm:rounded-3xl border border-white/10 bg-[#0d0d2b] p-6 shadow-2xl">
+      <div className="relative z-10 w-full max-w-sm rounded-t-3xl border border-[#ff9d42]/25 bg-[#091329] p-6 shadow-2xl sm:rounded-3xl">
         {/* Handle */}
-        <div className="mx-auto mb-5 h-1 w-10 rounded-full bg-white/20 sm:hidden" />
+        <div className="mx-auto mb-5 h-1 w-10 rounded-full bg-[#ffb66b]/40 sm:hidden" />
 
         <div className="flex items-center justify-between mb-5">
           <div>
             <h2 className="text-lg font-bold text-white">Scan QR Code</h2>
-            <p className="text-xs text-zinc-500 mt-0.5">
+            <p className="mt-0.5 text-xs text-[#d8b58d]">
               Point at a MISTzap QR code
             </p>
           </div>
           <button
             onClick={onClose}
-            className="flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-white/5 text-zinc-400 hover:text-white transition-colors"
+            className="flex h-8 w-8 items-center justify-center rounded-full border border-[#ff9d42]/25 bg-[#091329]/70 text-[#d8b58d] transition-colors hover:text-white"
           >
             <CloseIcon className="h-4 w-4" />
           </button>
@@ -129,7 +129,7 @@ export default function QRScanModal({ onClose }: Props) {
           {status === "starting" && (
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black/80">
               <Spinner />
-              <p className="text-sm text-zinc-400">Starting camera…</p>
+              <p className="text-sm text-[#d8b58d]">Starting camera...</p>
             </div>
           )}
 
@@ -138,12 +138,12 @@ export default function QRScanModal({ onClose }: Props) {
             <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
               <div className="relative h-60 w-60">
                 {/* Corner markers */}
-                <span className="absolute left-0 top-0 h-6 w-6 border-l-2 border-t-2 border-violet-400 rounded-tl-sm" />
-                <span className="absolute right-0 top-0 h-6 w-6 border-r-2 border-t-2 border-violet-400 rounded-tr-sm" />
-                <span className="absolute left-0 bottom-0 h-6 w-6 border-l-2 border-b-2 border-violet-400 rounded-bl-sm" />
-                <span className="absolute right-0 bottom-0 h-6 w-6 border-r-2 border-b-2 border-violet-400 rounded-br-sm" />
+                <span className="absolute left-0 top-0 h-6 w-6 rounded-tl-sm border-l-2 border-t-2 border-[#ff9d42]" />
+                <span className="absolute right-0 top-0 h-6 w-6 rounded-tr-sm border-r-2 border-t-2 border-[#ff9d42]" />
+                <span className="absolute bottom-0 left-0 h-6 w-6 rounded-bl-sm border-b-2 border-l-2 border-[#ff9d42]" />
+                <span className="absolute bottom-0 right-0 h-6 w-6 rounded-br-sm border-b-2 border-r-2 border-[#ff9d42]" />
                 {/* Scan line animation */}
-                <span className="absolute left-0 right-0 h-0.5 bg-violet-400/60 animate-scan" style={{ top: "50%" }} />
+                <span className="absolute left-0 right-0 h-0.5 animate-scan bg-[#ffb66b]/70" style={{ top: "50%" }} />
               </div>
             </div>
           )}
@@ -151,16 +151,16 @@ export default function QRScanModal({ onClose }: Props) {
           {/* Error state */}
           {status === "error" && (
             <div className="flex h-48 flex-col items-center justify-center gap-3 p-4 text-center">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-500/20">
-                <ErrorIcon className="h-6 w-6 text-red-400" />
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#ef6105]/20">
+                <ErrorIcon className="h-6 w-6 text-[#ff9d42]" />
               </div>
               <p className="text-sm font-medium text-white">Camera unavailable</p>
-              <p className="text-xs text-zinc-500">{errorMsg}</p>
+              <p className="text-xs text-[#d8b58d]">{errorMsg}</p>
             </div>
           )}
         </div>
 
-        <p className="mt-4 text-center text-xs text-zinc-600">
+        <p className="mt-4 text-center text-xs text-[#98775b]">
           Camera access is required to scan QR codes
         </p>
       </div>
@@ -219,7 +219,7 @@ function ErrorIcon({ className }: { className?: string }) {
 
 function Spinner() {
   return (
-    <svg className="h-8 w-8 animate-spin text-violet-400" viewBox="0 0 24 24" fill="none">
+    <svg className="h-8 w-8 animate-spin text-[#ff9d42]" viewBox="0 0 24 24" fill="none">
       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
     </svg>

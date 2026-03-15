@@ -1,8 +1,27 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg-0: #040915;
+  --bg-1: #091329;
+  --bg-2: #0f1f3a;
+  --surface-1: rgba(9, 19, 41, 0.72);
+  --surface-2: rgba(17, 33, 61, 0.78);
+
+  --ember-300: #ffb66b;
+  --ember-400: #ff9d42;
+  --ember-500: #ff7e1b;
+  --ember-600: #ef6105;
+
+  --text-0: #fff1df;
+  --text-1: #ffd7ae;
+  --text-2: #d8b58d;
+  --text-3: #98775b;
+
+  --success: #ffb66b;
+  --danger: #ff7e1b;
+
+  --background: var(--bg-0);
+  --foreground: var(--text-0);
 }
 
 @theme inline {
@@ -14,13 +33,25 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: var(--bg-0);
+    --foreground: var(--text-0);
   }
 }
 
 body {
-  background: var(--background);
+  background:
+    radial-gradient(1200px 800px at 50% -200px, rgba(255, 126, 27, 0.24), transparent 55%),
+    radial-gradient(900px 600px at 85% 10%, rgba(255, 157, 66, 0.16), transparent 60%),
+    linear-gradient(160deg, var(--bg-0) 0%, var(--bg-1) 45%, var(--bg-2) 100%);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: "Space Grotesk", "Avenir Next", "Segoe UI", sans-serif;
+  min-height: 100vh;
+}
+
+a {
+  color: var(--ember-300);
+}
+
+a:hover {
+  color: var(--ember-400);
 }

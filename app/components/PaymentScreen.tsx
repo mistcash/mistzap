@@ -112,12 +112,12 @@ export default function PaymentScreen() {
   const busy = txStatus === "preflight" || txStatus === "executing";
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-start bg-gradient-to-br from-[#0a0a1a] via-[#0d0d2b] to-[#12003a]">
+    <div className="flex min-h-screen flex-col items-center justify-start bg-linear-to-br from-[#040915] via-[#091329] to-[#0f1f3a]">
       {/* Header */}
       <header className="flex w-full max-w-sm items-center gap-3 px-5 pt-10 pb-2">
         <button
           onClick={closePayment}
-          className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-zinc-400 hover:text-white transition-colors"
+          className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#ff9d42]/25 bg-[#091329]/70 text-[#d8b58d] transition-colors hover:text-white"
         >
           <BackIcon className="h-4 w-4" />
         </button>
@@ -126,10 +126,10 @@ export default function PaymentScreen() {
 
       <main className="w-full max-w-sm flex-1 space-y-5 px-5 pt-6 pb-10">
         {/* Scanned Transaction Secret */}
-        <div className="rounded-2xl border border-violet-500/20 bg-violet-500/10 p-4">
+        <div className="rounded-2xl border border-[#ff9d42]/30 bg-[#ef6105]/10 p-4">
           <div className="flex items-center gap-2 mb-2">
-            <div className="h-2 w-2 rounded-full bg-violet-400 animate-pulse" />
-            <p className="text-xs font-semibold uppercase tracking-wider text-violet-400">
+            <div className="h-2 w-2 rounded-full bg-[#ff9d42] animate-pulse" />
+            <p className="text-xs font-semibold uppercase tracking-wider text-[#ffb66b]">
               Scanned Transaction Secret
             </p>
           </div>
@@ -139,11 +139,11 @@ export default function PaymentScreen() {
         </div>
 
         {/* USDC amount input */}
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-2">
-          <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
+        <div className="rounded-2xl border border-[#ff9d42]/25 bg-[#091329]/70 p-4 space-y-2">
+          <label className="text-xs font-semibold text-[#d8b58d] uppercase tracking-wider">
             USDC Amount
           </label>
-          <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2">
+          <div className="flex items-center gap-2 rounded-xl border border-[#ff9d42]/20 bg-[#091329]/80 px-3 py-2">
             <input
               type="number"
               min="0"
@@ -152,14 +152,14 @@ export default function PaymentScreen() {
               value={usdcAmount}
               onChange={(e) => setUsdcAmount(e.target.value)}
               disabled={busy || txStatus === "success"}
-              className="flex-1 bg-transparent text-sm font-mono text-white placeholder-zinc-600 outline-none disabled:opacity-50"
+              className="flex-1 bg-transparent text-sm font-mono text-white placeholder-[#98775b] outline-none disabled:opacity-50"
             />
-            <span className="text-xs font-semibold text-zinc-400">USDC</span>
+            <span className="text-xs font-semibold text-[#d8b58d]">USDC</span>
           </div>
         </div>
 
         {/* TX details */}
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-3">
+        <div className="rounded-2xl border border-[#ff9d42]/25 bg-[#091329]/70 p-4 space-y-3">
           <h3 className="text-sm font-semibold text-white">Transaction Details</h3>
           <InfoRow label="Contract" value={truncateAddress(HIDEMI_CONTRACT_ADDRESS, 8)} mono />
           <InfoRow label="Entrypoint" value="deposit" mono />
@@ -170,18 +170,18 @@ export default function PaymentScreen() {
 
         {/* Status feedback */}
         {txStatus === "success" && (
-          <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4">
-            <p className="text-sm font-semibold text-emerald-400">Deposit submitted!</p>
+          <div className="rounded-xl border border-[#ffb66b]/35 bg-[#ffb66b]/12 p-4">
+            <p className="text-sm font-semibold text-[#ffb66b]">Deposit submitted!</p>
             {txHash && (
-              <p className="mt-1 break-all font-mono text-xs text-emerald-300/70">{txHash}</p>
+              <p className="mt-1 break-all font-mono text-xs text-[#ffe3c4]/70">{txHash}</p>
             )}
           </div>
         )}
 
         {txStatus === "error" && (
-          <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-4">
-            <p className="text-sm font-semibold text-red-400">Error</p>
-            <p className="mt-1 text-xs text-red-300/70">{errorMsg}</p>
+          <div className="rounded-xl border border-[#ef6105]/35 bg-[#ef6105]/12 p-4">
+            <p className="text-sm font-semibold text-[#ff9d42]">Error</p>
+            <p className="mt-1 text-xs text-[#ffd7ae]/70">{errorMsg}</p>
           </div>
         )}
 
@@ -189,7 +189,7 @@ export default function PaymentScreen() {
         <button
           onClick={handleDeposit}
           disabled={busy || txStatus === "success" || !commitment || !getWallet() || !usdcAmount}
-          className="w-full rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 py-4 text-sm font-semibold text-white shadow-lg shadow-violet-500/25 transition-all hover:from-violet-500 hover:to-purple-500 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full rounded-xl bg-linear-to-r from-[#ef6105] to-[#ff9d42] py-4 text-sm font-semibold text-[#220f00] shadow-[0_0_30px_rgba(255,126,27,0.35)] transition-all hover:from-[#ff7e1b] hover:to-[#ffb66b] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
         >
           {busy ? (
             <span className="flex items-center justify-center gap-2">
@@ -212,8 +212,8 @@ export default function PaymentScreen() {
 function InfoRow({ label, value, mono = false }: { label: string; value: string; mono?: boolean }) {
   return (
     <div className="flex items-center justify-between gap-4">
-      <span className="text-xs text-zinc-500">{label}</span>
-      <span className={`text-xs text-zinc-200 truncate max-w-[60%] text-right ${mono ? "font-mono" : ""}`}>
+      <span className="text-xs text-[#98775b]">{label}</span>
+      <span className={`max-w-[60%] truncate text-right text-xs text-[#ffd7ae] ${mono ? "font-mono" : ""}`}>
         {value}
       </span>
     </div>

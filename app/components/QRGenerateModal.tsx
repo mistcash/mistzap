@@ -40,26 +40,26 @@ export default function QRGenerateModal({ onClose }: Props) {
       onClick={onClose}
     >
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+      <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" />
 
       {/* Sheet */}
       <div
-        className="relative z-10 w-full max-w-sm rounded-t-3xl sm:rounded-3xl border border-white/10 bg-[#0d0d2b] p-6 shadow-2xl"
+        className="relative z-10 w-full max-w-sm rounded-t-3xl border border-[#ff9d42]/25 bg-[#0b101e] p-6 shadow-2xl sm:rounded-3xl"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Handle */}
-        <div className="mx-auto mb-5 h-1 w-10 rounded-full bg-white/20 sm:hidden" />
+        <div className="mx-auto mb-5 h-1 w-10 rounded-full bg-[#ffb66b]/40 sm:hidden" />
 
         <div className="flex items-center justify-between mb-5">
           <div>
             <h2 className="text-lg font-bold text-white">Your QR Code</h2>
-            <p className="text-xs text-zinc-500 mt-0.5">
+            <p className="mt-0.5 text-xs text-[#d8b58d]">
               Share to receive a payment
             </p>
           </div>
           <button
             onClick={onClose}
-            className="flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-white/5 text-zinc-400 hover:text-white transition-colors"
+            className="flex h-8 w-8 items-center justify-center rounded-full border border-[#ff9d42]/25 bg-[#091329]/70 text-[#d8b58d] transition-colors hover:text-white"
           >
             <CloseIcon className="h-4 w-4" />
           </button>
@@ -74,26 +74,26 @@ export default function QRGenerateModal({ onClose }: Props) {
                 size={200}
                 level="M"
                 includeMargin={false}
-                fgColor="#0d0d2b"
+                fgColor="#091329"
               />
             ) : (
-              <div className="flex h-[200px] w-[200px] items-center justify-center">
+              <div className="flex h-50 w-50 items-center justify-center">
                 <Spinner />
               </div>
             )}
           </div>
 
           {/* Payload preview */}
-          <div className="w-full rounded-xl border border-white/10 bg-white/5 p-3">
-            <p className="mb-1 text-xs font-medium text-zinc-500 uppercase tracking-wider">
+          <div className="w-full rounded-xl border border-[#ff9d42]/25 bg-[#091329]/70 p-3">
+            <p className="mb-1 text-xs font-medium uppercase tracking-wider text-[#98775b]">
               Payload (index #{currentIndex})
             </p>
-            <p className="break-all font-mono text-xs text-violet-300">
+            <p className="break-all font-mono text-xs text-[#ffb66b]">
               {payload || "Generating…"}
             </p>
           </div>
 
-          <p className="text-center text-xs text-zinc-600">
+          <p className="text-center text-xs text-[#98775b]">
             Each scan generates a unique one-time code
           </p>
         </div>
@@ -119,7 +119,7 @@ function CloseIcon({ className }: { className?: string }) {
 
 function Spinner() {
   return (
-    <svg className="h-8 w-8 animate-spin text-zinc-300" viewBox="0 0 24 24" fill="none">
+    <svg className="h-8 w-8 animate-spin text-[#ff9d42]" viewBox="0 0 24 24" fill="none">
       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
     </svg>
