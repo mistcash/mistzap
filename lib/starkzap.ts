@@ -2,12 +2,16 @@
  * MISTzap SDK singleton and wallet helpers.
  *
  * Wraps the starkzap SDK with the AVNU paymaster configured,
- * and provides the Cartridge-based login flow for web.
+ * and provides wallet connection flows for Cartridge, Argent X, and Braavos.
  */
 
-import { StarkSDK, OnboardStrategy, mainnetTokens } from "starkzap";
+import { StarkSDK, OnboardStrategy } from "starkzap";
 import type { WalletInterface } from "starkzap";
 import { AVNU_API_KEY, AVNU_BASE_URL, HIDEMI_CONTRACT_ADDRESS } from "./config";
+import { TOKEN_LIST } from "./tokens";
+import type { TokenKey } from "./tokens";
+
+export { connectWithArgent, connectWithBraavos, isArgentAvailable, isBraavosAvailable } from "./injected-wallet";
 
 // Module-level singleton so the SDK isn't recreated on every login attempt
 let _sdk: StarkSDK | null = null;
@@ -56,13 +60,35 @@ export async function disconnectWallet(wallet: WalletInterface): Promise<void> {
   await wallet.disconnect();
 }
 
+export type TokenBalances = Record<TokenKey, string>;
+
 /**
- * Read the USDC balance for a wallet using the starkzap erc20 helper.
+ * Fetch balances for all supported tokens (USDC, ETH, WBTC, STRK).
+ */
+export async function getAllTokenBalances(wallet: WalletInterface): Promise<TokenBalances> {
+  const results = await Promise.allSettled(
+    TOKEN_LIST.map(async (token) => {
+      const amount = await wallet.balanceOf(token);
+      return { key: token.key, value: amount.toFormatted(true) };
+    })
+  );
+
+  const balances: TokenBalances = { USDC: "—", ETH: "—", WBTC: "—", STRK: "—" };
+  for (const result of results) {
+    if (result.status === "fulfilled") {
+      balances[result.value.key] = result.value.value;
+    }
+  }
+  return balances;
+}
+
+/**
+ * Read the USDC balance for a wallet (kept for backwards compat).
  */
 export async function getUSDCBalance(wallet: WalletInterface): Promise<string> {
   try {
-    const amount = await wallet.balanceOf(mainnetTokens.USDC);
-    return amount.toFormatted(true);
+    const balances = await getAllTokenBalances(wallet);
+    return balances.USDC;
   } catch {
     return "— USDC";
   }
