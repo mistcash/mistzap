@@ -3,44 +3,46 @@
 import { useState } from "react";
 import { CallData, uint256 } from "starknet";
 import { useApp } from "@/app/context/AppContext";
-import { HIDEMI_CONTRACT_ADDRESS, USDC_ADDRESS } from "@/lib/config";
+import { HIDEMI_CONTRACT_ADDRESS } from "@/lib/config";
 import { truncateAddress } from "@/lib/crypto";
+import { TOKEN_LIST, TOKEN_ICONS, DEFAULT_TOKEN_KEY, type TokenKey } from "@/lib/tokens";
 import FooterCredits from "./FooterCredits";
 
 type TxStatus = "idle" | "preflight" | "executing" | "success" | "error";
 
-// USDC has 6 decimal places
-const USDC_DECIMALS = 6;
-
-function parseUSDCAmount(input: string): bigint | null {
+/** Parse a human-readable decimal string to base units (bigint) given token decimals */
+function parseTokenAmount(input: string, decimals: number): bigint | null {
   const trimmed = input.trim();
   if (!trimmed || isNaN(Number(trimmed)) || Number(trimmed) <= 0) return null;
   const parts = trimmed.split(".");
   const whole = BigInt(parts[0] || "0");
   let frac = BigInt(0);
   if (parts[1] !== undefined) {
-    const fracStr = parts[1].slice(0, USDC_DECIMALS).padEnd(USDC_DECIMALS, "0");
+    const fracStr = parts[1].slice(0, decimals).padEnd(decimals, "0");
     frac = BigInt(fracStr);
   }
-  return whole * BigInt(10 ** USDC_DECIMALS) + frac;
+  return whole * BigInt(10 ** decimals) + frac;
 }
 
 export default function PaymentScreen() {
-  const { scannedPayload, walletAddress, closePayment, getWallet } = useApp();
+  const { scannedPayload, walletAddress, walletType, closePayment, getWallet, tokenBalances } = useApp();
   const [txStatus, setTxStatus] = useState<TxStatus>("idle");
   const [txHash, setTxHash] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
-  const [usdcAmount, setUsdcAmount] = useState("");
+  const [amount, setAmount] = useState("");
+  const [selectedTokenKey, setSelectedTokenKey] = useState<TokenKey>(DEFAULT_TOKEN_KEY);
 
   const commitment = scannedPayload ?? "";
+  const selectedToken = TOKEN_LIST.find((t) => t.key === selectedTokenKey)!;
+  const isSponsored = walletType === "cartridge";
 
   async function handleDeposit() {
     const wallet = getWallet();
     if (!wallet || !commitment) return;
 
-    const amountBase = parseUSDCAmount(usdcAmount);
+    const amountBase = parseTokenAmount(amount, selectedToken.decimals);
     if (amountBase === null) {
-      setErrorMsg("Enter a valid USDC amount greater than 0.");
+      setErrorMsg(`Enter a valid ${selectedToken.symbol} amount greater than 0.`);
       setTxStatus("error");
       return;
     }
@@ -52,9 +54,9 @@ export default function PaymentScreen() {
     const hashU256 = uint256.bnToUint256(BigInt(commitment));
 
     const calls = [
-      // Step 1: approve Hidemi to spend USDC
+      // Step 1: approve Hidemi to spend the chosen token
       {
-        contractAddress: USDC_ADDRESS,
+        contractAddress: selectedToken.address,
         entrypoint: "approve",
         calldata: CallData.compile({
           spender: HIDEMI_CONTRACT_ADDRESS,
@@ -69,24 +71,25 @@ export default function PaymentScreen() {
           hash: hashU256,
           asset: {
             amount: amountU256,
-            addr: USDC_ADDRESS,
+            addr: selectedToken.address,
           },
         }),
       },
     ];
 
+    const feeMode = isSponsored ? "sponsored" : "user_pays";
+
     try {
       // Preflight — simulate before spending gas
-      const pre = await wallet.preflight({ calls, feeMode: "sponsored" });
+      const pre = await wallet.preflight({ calls, feeMode });
       if (!pre.ok) {
         setErrorMsg(`Preflight failed: ${(pre as { reason?: string }).reason ?? "unknown"}`);
         setTxStatus("error");
         return;
       }
 
-      // Execute sponsored via AVNU paymaster
       setTxStatus("executing");
-      const tx = await wallet.execute(calls, { feeMode: "sponsored" });
+      const tx = await wallet.execute(calls, { feeMode });
 
       if (!tx.hash) {
         throw new Error("No transaction hash returned");
@@ -138,24 +141,64 @@ export default function PaymentScreen() {
           </p>
         </div>
 
-        {/* USDC amount input */}
+        {/* Token selector */}
+        <div className="rounded-2xl border border-[#ff9d42]/25 bg-[#091329]/70 p-4 space-y-3">
+          <p className="text-xs font-semibold text-[#d8b58d] uppercase tracking-wider">
+            Select Token
+          </p>
+          <div className="grid grid-cols-2 gap-2">
+            {TOKEN_LIST.map((token) => {
+              const selected = token.key === selectedTokenKey;
+              const balance = tokenBalances[token.key] ?? "—";
+              return (
+                <button
+                  key={token.key}
+                  onClick={() => { setSelectedTokenKey(token.key); setAmount(""); }}
+                  disabled={busy || txStatus === "success"}
+                  className={`flex flex-col items-start gap-1 rounded-xl border p-3 text-left transition-all disabled:opacity-50 ${
+                    selected
+                      ? "border-[#ff9d42]/60 bg-[#ff9d42]/12"
+                      : "border-[#ff9d42]/20 bg-[#091329]/60 hover:bg-[#11213d]"
+                  }`}
+                >
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-base leading-none">{TOKEN_ICONS[token.key]}</span>
+                    <span className={`text-sm font-semibold ${selected ? "text-[#ffb66b]" : "text-white"}`}>
+                      {token.symbol}
+                    </span>
+                  </div>
+                  <span className="font-mono text-xs text-[#98775b] truncate w-full">
+                    {balance}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Amount input */}
         <div className="rounded-2xl border border-[#ff9d42]/25 bg-[#091329]/70 p-4 space-y-2">
           <label className="text-xs font-semibold text-[#d8b58d] uppercase tracking-wider">
-            USDC Amount
+            Amount
           </label>
           <div className="flex items-center gap-2 rounded-xl border border-[#ff9d42]/20 bg-[#091329]/80 px-3 py-2">
             <input
               type="number"
               min="0"
-              step="0.000001"
+              step={selectedToken.decimals > 0 ? `0.${"0".repeat(selectedToken.decimals - 1)}1` : "1"}
               placeholder="0.00"
-              value={usdcAmount}
-              onChange={(e) => setUsdcAmount(e.target.value)}
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
               disabled={busy || txStatus === "success"}
               className="flex-1 bg-transparent text-sm font-mono text-white placeholder-[#98775b] outline-none disabled:opacity-50"
             />
-            <span className="text-xs font-semibold text-[#d8b58d]">USDC</span>
+            <span className="text-xs font-semibold text-[#ffb66b]">
+              {TOKEN_ICONS[selectedTokenKey]} {selectedToken.symbol}
+            </span>
           </div>
+          <p className="text-xs text-[#98775b]">
+            Balance: <span className="text-[#ffd7ae]">{tokenBalances[selectedTokenKey] ?? "—"}</span>
+          </p>
         </div>
 
         {/* TX details */}
@@ -163,9 +206,9 @@ export default function PaymentScreen() {
           <h3 className="text-sm font-semibold text-white">Transaction Details</h3>
           <InfoRow label="Contract" value={truncateAddress(HIDEMI_CONTRACT_ADDRESS, 8)} mono />
           <InfoRow label="Entrypoint" value="deposit" mono />
-          <InfoRow label="Asset" value={`USDC (${truncateAddress(USDC_ADDRESS, 6)})`} mono />
+          <InfoRow label="Asset" value={`${selectedToken.symbol} (${truncateAddress(selectedToken.address, 6)})`} mono />
           <InfoRow label="From" value={walletAddress ? truncateAddress(walletAddress, 8) : "—"} mono />
-          <InfoRow label="Fee mode" value="Sponsored (AVNU)" />
+          <InfoRow label="Fee mode" value={isSponsored ? "Sponsored (AVNU)" : "User pays"} />
         </div>
 
         {/* Status feedback */}
@@ -188,7 +231,7 @@ export default function PaymentScreen() {
         {/* Deposit button */}
         <button
           onClick={handleDeposit}
-          disabled={busy || txStatus === "success" || !commitment || !getWallet() || !usdcAmount}
+          disabled={busy || txStatus === "success" || !commitment || !getWallet() || !amount}
           className="w-full rounded-xl bg-linear-to-r from-[#ef6105] to-[#ff9d42] py-4 text-sm font-semibold text-[#220f00] shadow-[0_0_30px_rgba(255,126,27,0.35)] transition-all hover:from-[#ff7e1b] hover:to-[#ffb66b] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
         >
           {busy ? (
@@ -199,7 +242,7 @@ export default function PaymentScreen() {
           ) : txStatus === "success" ? (
             "Deposited!"
           ) : (
-            "Deposit USDC"
+            `Deposit ${TOKEN_ICONS[selectedTokenKey]} ${selectedToken.symbol}`
           )}
         </button>
 

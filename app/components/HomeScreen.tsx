@@ -3,15 +3,24 @@
 import { useState } from "react";
 import { useApp } from "@/app/context/AppContext";
 import { truncateAddress } from "@/lib/crypto";
+import { TOKEN_LIST, TOKEN_ICONS } from "@/lib/tokens";
 import QRGenerateModal from "./QRGenerateModal";
 import QRScanModal from "./QRScanModal";
 import FooterCredits from "./FooterCredits";
 import Image from "next/image";
 
+const WALLET_LABELS: Record<string, string> = {
+  cartridge: "Cartridge",
+  argent: "Argent X",
+  braavos: "Braavos",
+};
+
 export default function HomeScreen() {
-  const { walletAddress, balance, activity, logout } = useApp();
+  const { walletAddress, walletType, tokenBalances, activity, logout } = useApp();
   const [showQR, setShowQR] = useState(false);
   const [showScan, setShowScan] = useState(false);
+
+  const walletLabel = walletType ? WALLET_LABELS[walletType] ?? walletType : "";
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-start bg-linear-to-br from-[#040915] via-[#091329] to-[#0f1f3a]">
@@ -33,28 +42,45 @@ export default function HomeScreen() {
 
       <main className="w-full max-w-sm flex-1 space-y-5 px-5 pt-6 pb-10">
         {/* Wallet chip */}
-        <div className="flex w-fit items-center gap-2 rounded-full border border-[#ff9d42]/25 bg-[#091329]/70 px-4 py-2">
-          <div className="h-2 w-2 rounded-full bg-[#ff9d42] animate-pulse" />
-          <span className="font-mono text-xs text-[#ffd7ae]">
-            {walletAddress ? truncateAddress(walletAddress, 8) : "—"}
-          </span>
+        <div className="flex items-center gap-2">
+          <div className="flex w-fit items-center gap-2 rounded-full border border-[#ff9d42]/25 bg-[#091329]/70 px-4 py-2">
+            <div className="h-2 w-2 rounded-full bg-[#ff9d42] animate-pulse" />
+            <span className="font-mono text-xs text-[#ffd7ae]">
+              {walletAddress ? truncateAddress(walletAddress, 8) : "—"}
+            </span>
+          </div>
+          {walletLabel && (
+            <span className="rounded-full border border-[#ff9d42]/20 bg-[#ff9d42]/10 px-3 py-1.5 text-xs font-medium text-[#ffb66b]">
+              {walletLabel}
+            </span>
+          )}
         </div>
 
-        {/* Balance card */}
-        <div className="relative overflow-hidden rounded-2xl bg-linear-to-br from-[#ef6105]/90 to-[#ff9d42]/85 p-6 shadow-[0_0_42px_rgba(255,126,27,0.32)]">
-          <div className="absolute inset-0 bg-linear-to-br from-white/5 to-transparent" />
-          <div className="relative">
-            <p className="text-sm font-medium text-black/50">
-              Total Balance
-            </p>
-            <p className="mt-1 text-4xl font-bold tracking-tight text-black/60 flex items-baseline gap-1" data-amt={balance}>
-              <span>{balance.replace(/[^\d.]/g, '')}</span>
-              <span className="text-lg font-medium text-black/50">USDC</span>
-            </p>
+        {/* Token balances grid */}
+        <div>
+          <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-[#98775b]">
+            Your Balances
+          </p>
+          <div className="grid grid-cols-2 gap-2">
+            {TOKEN_LIST.map((token) => {
+              const balance = tokenBalances[token.key] ?? "—";
+              return (
+                <div
+                  key={token.key}
+                  className="rounded-2xl border border-[#ff9d42]/20 bg-[#091329]/70 p-4"
+                >
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <span className="text-lg leading-none">{TOKEN_ICONS[token.key]}</span>
+                    <span className="text-xs font-semibold text-[#d8b58d]">{token.symbol}</span>
+                  </div>
+                  <p className="font-mono text-sm font-semibold text-white truncate">
+                    {balance}
+                  </p>
+                  <p className="text-xs text-[#98775b] mt-0.5">{token.name}</p>
+                </div>
+              );
+            })}
           </div>
-          {/* Decorative circle */}
-          <div className="absolute -right-8 -top-8 h-36 w-36 rounded-full border border-[#ffe3c4]/20" />
-          <div className="absolute -right-4 -top-4 h-24 w-24 rounded-full border border-[#ffe3c4]/20" />
         </div>
 
         {/* Action buttons */}

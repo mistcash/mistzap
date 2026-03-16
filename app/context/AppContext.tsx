@@ -9,18 +9,28 @@ import React, {
   useEffect,
 } from "react";
 import type { WalletInterface } from "starkzap";
-import { connectWithCartridge, disconnectWallet, getUSDCBalance } from "@/lib/starkzap";
+import {
+  connectWithCartridge,
+  connectWithArgent,
+  connectWithBraavos,
+  disconnectWallet,
+  getAllTokenBalances,
+  type TokenBalances,
+} from "@/lib/starkzap";
 import { getQRIndex } from "@/lib/crypto";
 import type { PaymentActivity } from "@/lib/config";
+import type { TokenKey } from "@/lib/tokens";
 
 export type Screen = "login" | "home" | "payment";
+export type WalletType = "cartridge" | "argent" | "braavos";
 
 interface AppState {
   screen: Screen;
   walletAddress: string | null;
+  walletType: WalletType | null;
   qrIndex: number;
   scannedPayload: string | null;
-  balance: string;
+  tokenBalances: TokenBalances;
   activity: PaymentActivity[];
   isConnecting: boolean;
   connectError: string | null;
@@ -28,11 +38,14 @@ interface AppState {
 
 interface AppActions {
   connectCartridge: () => Promise<void>;
+  connectArgent: () => Promise<void>;
+  connectBraavos: () => Promise<void>;
   logout: () => Promise<void>;
   openPayment: (payload: string) => void;
   closePayment: () => void;
   refreshQRIndex: () => void;
   getWallet: () => WalletInterface | null;
+  getTokenBalance: (key: TokenKey) => string;
 }
 
 const AppContext = createContext<(AppState & AppActions) | null>(null);
@@ -61,6 +74,8 @@ const MOCK_ACTIVITY: PaymentActivity[] = [
   },
 ];
 
+const EMPTY_BALANCES: TokenBalances = { USDC: "—", ETH: "—", WBTC: "—", STRK: "—" };
+
 export function AppProvider({ children }: { children: React.ReactNode }) {
   // Keep the live WalletInterface in a ref so it never triggers re-renders
   const walletRef = useRef<WalletInterface | null>(null);
@@ -68,40 +83,43 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<AppState>({
     screen: "login",
     walletAddress: null,
+    walletType: null,
     qrIndex: 0,
     scannedPayload: null,
-    balance: "— USDC",
+    tokenBalances: EMPTY_BALANCES,
     activity: MOCK_ACTIVITY,
     isConnecting: false,
     connectError: null,
   });
 
   /** After a wallet is connected, hydrate app state from it */
-  async function hydrateFromWallet(wallet: WalletInterface) {
+  async function hydrateFromWallet(wallet: WalletInterface, walletType: WalletType) {
     walletRef.current = wallet;
     const address = wallet.address;
-    const balance = await getUSDCBalance(wallet);
+
+    // Kick off all 4 balance fetches in parallel
+    const tokenBalances = await getAllTokenBalances(wallet);
+
     setState((s) => ({
       ...s,
       walletAddress: address,
+      walletType,
       qrIndex: getQRIndex(),
-      balance,
+      tokenBalances,
       screen: "home",
       isConnecting: false,
       connectError: null,
     }));
   }
 
-  // On mount: if the Cartridge controller already has a session, skip login
-  useEffect(() => {
-    // Cartridge sessions are ephemeral per page load; no auto-reconnect needed.
-  }, []);
+  // On mount: Cartridge sessions are ephemeral per page load; no auto-reconnect needed.
+  useEffect(() => {}, []);
 
-  const connectCartridge = useCallback(async () => {
+  async function handleConnect(type: WalletType, connectFn: () => Promise<WalletInterface>) {
     setState((s) => ({ ...s, isConnecting: true, connectError: null }));
     try {
-      const wallet = await connectWithCartridge();
-      await hydrateFromWallet(wallet);
+      const wallet = await connectFn();
+      await hydrateFromWallet(wallet, type);
     } catch (err) {
       const msg =
         err instanceof Error ? err.message : "Connection failed. Try again.";
@@ -111,18 +129,38 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         connectError: msg,
       }));
     }
-  }, []);
+  }
+
+  const connectCartridge = useCallback(
+    () => handleConnect("cartridge", connectWithCartridge),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    []
+  );
+
+  const connectArgent = useCallback(
+    () => handleConnect("argent", connectWithArgent),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    []
+  );
+
+  const connectBraavos = useCallback(
+    () => handleConnect("braavos", connectWithBraavos),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    []
+  );
 
   const logout = useCallback(async () => {
     if (walletRef.current) {
-      await disconnectWallet(walletRef.current).catch(() => { });
+      await disconnectWallet(walletRef.current).catch(() => {});
       walletRef.current = null;
     }
     setState((s) => ({
       ...s,
       walletAddress: null,
+      walletType: null,
       screen: "login",
       scannedPayload: null,
+      tokenBalances: EMPTY_BALANCES,
       connectError: null,
     }));
   }, []);
@@ -141,16 +179,24 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const getWallet = useCallback(() => walletRef.current, []);
 
+  const getTokenBalance = useCallback(
+    (key: TokenKey) => state.tokenBalances[key] ?? "—",
+    [state.tokenBalances]
+  );
+
   return (
     <AppContext.Provider
       value={{
         ...state,
         connectCartridge,
+        connectArgent,
+        connectBraavos,
         logout,
         openPayment,
         closePayment,
         refreshQRIndex,
         getWallet,
+        getTokenBalance,
       }}
     >
       {children}
