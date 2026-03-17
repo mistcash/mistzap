@@ -22,4 +22,9 @@ export const TOKEN_ICONS: Record<TokenKey, ReactNode> = {
   STRK: <Image src={STRK.metadata.logoUrl.href} alt={STRK.symbol} width={32} height={32} />,
 };
 
+export function tokenIcon(key: TokenKey, className = ''): ReactNode {
+  if (!SUPPORTED_TOKENS[key]) return null;
+  return <Image className={className} src={SUPPORTED_TOKENS[key].metadata?.logoUrl?.href || ''} alt={SUPPORTED_TOKENS[key].symbol} width={32} height={32} />
+}
+
 export const DEFAULT_TOKEN_KEY: TokenKey = "USDC";
