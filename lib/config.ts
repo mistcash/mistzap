@@ -1,3 +1,5 @@
+import { TokenKey } from "./tokens";
+
 // MISTzap configuration
 export const HIDEMI_CONTRACT_ADDRESS =
   "0x075b21ada56ae65436cc80c616b71f9a9be87ba46e58f2330cf640e459318e11";
@@ -346,10 +348,16 @@ export type HidemiAbi = typeof HIDEMI_ABI;
 
 // Mock activity data shape
 export interface PaymentActivity {
-  id: string;
-  type: "sent" | "received";
+
+  // metadata
+  id: number;
+  type: "received" | "withdrawn";
+
+  // locked asset
   amount: string;
-  address: string;
-  timestamp: number;
-  txHash?: string;
+  token: TokenKey;
+
+  // for secret and claiming
+  claimingKey: string;
+  recipient: string;
 }

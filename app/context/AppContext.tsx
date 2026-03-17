@@ -15,10 +15,9 @@ import {
   connectWithBraavos,
   disconnectWallet,
   getAllTokenBalances,
-  getTransactionActivity,
   type TokenBalances,
 } from "@/lib/starkzap";
-import { getQRIndex } from "@/lib/crypto";
+import { getPrivateTxActivity, getQRIndex } from "@/lib/crypto";
 import type { PaymentActivity } from "@/lib/config";
 import type { TokenKey } from "@/lib/tokens";
 
@@ -85,7 +84,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     screen: "login",
     walletAddress: null,
     walletType: null,
-    qrIndex: 0,
+    qrIndex: getQRIndex(),
     scannedPayload: null,
     tokenBalances: EMPTY_BALANCES,
     activity: MOCK_ACTIVITY,
@@ -100,7 +99,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
     // Kick off all 4 balance fetches in parallel
     const tokenBalances = await getAllTokenBalances(wallet);
-    const activity = await getTransactionActivity(wallet);
+    const activity = await getPrivateTxActivity(wallet, state.qrIndex);
 
     setState((s) => ({
       ...s,
@@ -124,6 +123,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       const wallet = await connectFn();
       await hydrateFromWallet(wallet, type);
     } catch (err) {
+      console.error("Connection error:", err);
       const msg =
         err instanceof Error ? err.message : "Connection failed. Try again.";
       setState((s) => ({
