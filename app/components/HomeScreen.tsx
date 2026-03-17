@@ -75,7 +75,7 @@ export default function HomeScreen() {
                     </p>
                     <p className="text-xs text-[#98775b] mt-0.5">{token.symbol}</p>
                   </div>
-                  <span className="ml-auto">{token.metadata?.logoUrl ? <Image src={token.metadata.logoUrl.href} alt={token.symbol} width={32} height={32} /> : TOKEN_ICONS[token.key]}</span>
+                  <span className="ml-auto">{TOKEN_ICONS[token.key]}</span>
                 </div>
               );
             })}
