@@ -52,25 +52,28 @@ const AppContext = createContext<(AppState & AppActions) | null>(null);
 
 const MOCK_ACTIVITY: PaymentActivity[] = [
   {
-    id: "1",
+    id: 1,
     type: "received",
     amount: "10.00 USDC",
-    address: "0x049d3657...04dc7",
-    timestamp: Date.now() - 3_600_000,
+    token: "USDC",
+    claimingKey: "0x01",
+    recipient: "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
   },
   {
-    id: "2",
-    type: "sent",
+    id: 2,
+    type: "withdrawn",
     amount: "5.00 USDC",
-    address: "0x04718f5a...b7dc",
-    timestamp: Date.now() - 86_400_000,
+    token: "USDC",
+    claimingKey: "0x02",
+    recipient: "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5d22b8f0cf248d7d4f2e53ab7dc",
   },
   {
-    id: "3",
+    id: 3,
     type: "received",
     amount: "25.00 USDC",
-    address: "0x06b5f6b3...a1e8",
-    timestamp: Date.now() - 172_800_000,
+    token: "USDC",
+    claimingKey: "0x03",
+    recipient: "0x06b5f6b3f5b709f6682a490f0f4cb6f7a3c03a65ac76da68f29d7f548351a1e8",
   },
 ];
 

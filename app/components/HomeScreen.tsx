@@ -8,6 +8,7 @@ import QRGenerateModal from "./QRGenerateModal";
 import QRScanModal from "./QRScanModal";
 import FooterCredits from "./FooterCredits";
 import Image from "next/image";
+import { PaymentActivity } from "@/lib/config";
 
 const WALLET_LABELS: Record<string, string> = {
   cartridge: "Cartridge",
@@ -136,27 +137,18 @@ export default function HomeScreen() {
 function ActivityRow({
   item,
 }: {
-  item: {
-    id: string;
-    type: "sent" | "received";
-    amount: string;
-    address: string;
-    timestamp: number;
-  };
+  item: PaymentActivity;
 }) {
-  const sent = item.type === "sent";
-  const date = new Date(item.timestamp).toLocaleDateString(undefined, {
-    month: "short",
-    day: "numeric",
-  });
+  const withdrawn = item.type === "withdrawn";
+  const recipient = truncateAddress(item.recipient, 8);
 
   return (
     <div className="flex items-center gap-3 rounded-xl border border-[#ff9d42]/20 bg-[#091329]/70 px-4 py-3">
       <div
-        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${sent ? "bg-[#ef6105]/25" : "bg-[#ffb66b]/22"
+        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${withdrawn ? "bg-[#ef6105]/25" : "bg-[#ffb66b]/22"
           }`}
       >
-        {sent ? (
+        {withdrawn ? (
           <ArrowUpIcon className="h-4 w-4 text-[#ff7e1b]" />
         ) : (
           <ArrowDownIcon className="h-4 w-4 text-[#ffb66b]" />
@@ -164,21 +156,21 @@ function ActivityRow({
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium text-white">
-          {sent ? "Sent" : "Received"}
+          {withdrawn ? "Withdrawn" : "Received"}
         </p>
         <p className="truncate font-mono text-xs text-[#98775b]">
-          {item.address}
+          {recipient}
         </p>
       </div>
       <div className="text-right">
         <p
-          className={`text-sm font-semibold ${sent ? "text-[#ff7e1b]" : "text-[#ffb66b]"
+          className={`text-sm font-semibold ${withdrawn ? "text-[#ff7e1b]" : "text-[#ffb66b]"
             }`}
         >
-          {sent ? "-" : "+"}
-          {item.amount}
+          {withdrawn ? "-" : "+"}
+          {item.amount.replace(/[^.0-9]+/g, "")}
         </p>
-        <p className="text-xs text-[#98775b]">{date}</p>
+        <p className="text-xs text-[#98775b]">{item.token}</p>
       </div>
     </div>
   );
