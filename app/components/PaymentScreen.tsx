@@ -156,8 +156,8 @@ export default function PaymentScreen() {
                   onClick={() => { setSelectedTokenKey(token.key); setAmount(""); }}
                   disabled={busy || txStatus === "success"}
                   className={`flex flex-col items-start gap-1 rounded-xl border p-3 text-left transition-all disabled:opacity-50 ${selected
-                      ? "border-[#ff9d42]/60 bg-[#ff9d42]/12"
-                      : "border-[#ff9d42]/20 bg-[#091329]/60 hover:bg-[#11213d]"
+                    ? "border-[#ff9d42]/60 bg-[#ff9d42]/12"
+                    : "border-[#ff9d42]/20 bg-[#091329]/60 hover:bg-[#11213d]"
                     }`}
                 >
                   <div className="flex items-center gap-1.5">
@@ -241,7 +241,7 @@ export default function PaymentScreen() {
           ) : txStatus === "success" ? (
             "Deposited!"
           ) : (
-            `Deposit ${TOKEN_ICONS[selectedTokenKey]} ${selectedToken.symbol}`
+            `Deposit ${selectedToken.symbol}`
           )}
         </button>
 
