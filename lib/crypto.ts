@@ -1,6 +1,9 @@
 // Deterministic secret key generation for MISTzap
 
-import { hash2 } from "@mistcash/sdk";
+import { hash2, getChamber, fetchTxAssets } from "@mistcash/sdk";
+import { PaymentActivity } from "./config";
+import { Amount, WalletInterface } from "starkzap";
+import { TOKEN_LIST } from "./tokens";
 
 const DEVICE_ID_KEY = "mistzap_device_id";
 const QR_INDEX_KEY = "mistzap_qr_index";
@@ -94,4 +97,47 @@ export function truncateAddress(address: string, chars = 6): string {
 /** Validates a Starknet address (0x prefixed hex, 1-63 hex chars after prefix) */
 export function isValidStarknetAddress(addr: string): boolean {
   return /^0x[0-9a-fA-F]{1,63}$/.test(addr);
+}
+
+
+export async function getPrivateTxActivity(wallet: WalletInterface, qrIndex: number): Promise<PaymentActivity[]> {
+  const transactions: PaymentActivity[] = [];
+
+  console.log(`Looking up ${qrIndex} transactions`)
+
+
+  try {
+    const walletAddress = wallet.address;
+    const contract = getChamber(wallet.getProvider());
+
+    for (let id = 0; id <= qrIndex; id++) {
+      const claimingKey = await generateClaimingKeyForIndex(walletAddress, id);
+      const txSecret = BigInt(await hash2(claimingKey, walletAddress));
+      const { addr, amount: amt } = await contract.assets_from_secret(txSecret)
+      const token = addr.toString();
+
+      console.log(`Tx ${id}: token=${token}, amount=${amt.toString()}`);
+
+      if (token === "0") continue; // No transaction found for this index
+
+      TOKEN_LIST.forEach(t => {
+        if (BigInt(t.address) === BigInt(addr)) {
+          const amount = Amount.fromRaw(amt as Bigint, t);
+          transactions.push({
+            id,
+            type: "received",
+            amount: amount.toFormatted(true),
+            token: t.key,
+            claimingKey,
+            recipient: walletAddress,
+          });
+        }
+      });
+    }
+  } catch (err) {
+    console.error(err)
+    throw err;
+  }
+
+  return transactions;
 }

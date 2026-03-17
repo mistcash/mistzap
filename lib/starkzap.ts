@@ -82,10 +82,6 @@ export async function getAllTokenBalances(wallet: WalletInterface): Promise<Toke
   return balances;
 }
 
-export async function getTransactionActivity(wallet: WalletInterface): Promise<PaymentActivity[]> {
-  return []
-}
-
 /**
  * Read the USDC balance for a wallet (kept for backwards compat).
  */
