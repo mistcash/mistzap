@@ -3,9 +3,36 @@
 import { useApp } from "@/app/context/AppContext";
 import FooterCredits from "./FooterCredits";
 import Image from "next/image";
+import { useEffect, useState } from "react";
+import { getDeviceId, setDeviceId } from "@/lib/crypto";
 
 export default function LoginScreen() {
   const { connectCartridge, connectArgent, connectBraavos, isConnecting, connectError } = useApp();
+
+  const [deviceId, setDeviceIdState] = useState("");
+  const [showEditor, setShowEditor] = useState(false);
+  const [newDeviceId, setNewDeviceId] = useState("");
+  const [confirmed, setConfirmed] = useState(false);
+
+  useEffect(() => {
+    setDeviceIdState(getDeviceId());
+  }, []);
+
+  function handleChangeDeviceId() {
+    const trimmed = newDeviceId.trim();
+    if (!trimmed || !confirmed) return;
+    setDeviceId(trimmed);
+    setDeviceIdState(trimmed);
+    setShowEditor(false);
+    setNewDeviceId("");
+    setConfirmed(false);
+  }
+
+  function openEditor() {
+    setNewDeviceId(deviceId);
+    setConfirmed(false);
+    setShowEditor(true);
+  }
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-linear-to-br from-[#040915] via-[#091329] to-[#0f1f3a] px-6">
@@ -104,6 +131,72 @@ export default function LoginScreen() {
               {f}
             </div>
           ))}
+        </div>
+
+        {/* Device ID section */}
+        <div className="mt-6 rounded-2xl border border-[#ff9d42]/15 bg-[#091329]/50 px-4 py-3">
+          <div className="flex items-center justify-between gap-2">
+            <div className="min-w-0">
+              <p className="text-xs font-medium text-[#d8b58d]/70 mb-0.5">Device ID</p>
+              <p className="text-xs font-mono text-[#98775b] truncate" title={deviceId}>
+                {deviceId ? `${deviceId.slice(0, 8)}…${deviceId.slice(-6)}` : "—"}
+              </p>
+            </div>
+            {!showEditor && (
+              <button
+                onClick={openEditor}
+                className="shrink-0 text-xs text-[#ff9d42]/70 hover:text-[#ff9d42] transition-colors"
+              >
+                Change
+              </button>
+            )}
+          </div>
+
+          {showEditor && (
+            <div className="mt-3 space-y-3">
+              <div className="rounded-xl border border-[#ef6105]/40 bg-[#ef6105]/10 px-3 py-2">
+                <p className="text-xs text-[#ffb66b] leading-relaxed">
+                  <strong>Warning:</strong> Changing your Device ID will make all previously generated QR codes unclaimable. Only do this if you know what you&#39;re doing.
+                </p>
+              </div>
+
+              <input
+                type="text"
+                value={newDeviceId}
+                onChange={(e) => setNewDeviceId(e.target.value)}
+                placeholder="Enter new device ID"
+                className="w-full rounded-xl border border-[#ff9d42]/25 bg-[#040915]/60 px-3 py-2 text-xs font-mono text-white placeholder-[#98775b]/60 outline-none focus:border-[#ff9d42]/55"
+              />
+
+              <label className="flex items-start gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={confirmed}
+                  onChange={(e) => setConfirmed(e.target.checked)}
+                  className="mt-0.5 shrink-0 accent-[#ff7e1b]"
+                />
+                <span className="text-xs text-[#98775b]">
+                  I understand this will break access to all existing QR codes tied to the current Device ID.
+                </span>
+              </label>
+
+              <div className="flex gap-2">
+                <button
+                  onClick={handleChangeDeviceId}
+                  disabled={!confirmed || !newDeviceId.trim()}
+                  className="flex-1 rounded-xl bg-[#ef6105]/80 py-2 text-xs font-semibold text-white transition-all hover:bg-[#ef6105] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  Confirm Change
+                </button>
+                <button
+                  onClick={() => setShowEditor(false)}
+                  className="flex-1 rounded-xl border border-[#ff9d42]/25 py-2 text-xs font-semibold text-[#d8b58d] transition-all hover:bg-[#11213d] active:scale-[0.98]"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         <FooterCredits className="mt-8" />

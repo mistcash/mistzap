@@ -18,9 +18,15 @@ export function getDeviceId(): string {
     id = Array.from(arr)
       .map((b) => b.toString(16).padStart(2, "0"))
       .join("");
-    localStorage.setItem(DEVICE_ID_KEY, id);
+    setDeviceId(id);
   }
   return id;
+}
+
+/** Overwrites the stored device identifier */
+export function setDeviceId(id: string): void {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(DEVICE_ID_KEY, id);
 }
 
 /**
