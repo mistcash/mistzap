@@ -69,7 +69,7 @@ class InjectedWalletAdapter {
       const raw = uint256.uint256ToBN({ low: res[0], high: res[1] });
       return Amount.fromRaw(raw, token);
     } catch {
-      return Amount.fromRaw(0n, token);
+      return Amount.fromRaw(0, token);
     }
   }
 
