@@ -67,16 +67,15 @@ export default function HomeScreen() {
               return (
                 <div
                   key={token.key}
-                  className="rounded-2xl border border-[#ff9d42]/20 bg-[#091329]/70 p-4"
+                  className="rounded-2xl border border-[#ff9d42]/20 bg-[#091329]/70 p-4 flex items-center gap-1"
                 >
-                  <div className="flex items-center gap-1.5 mb-1">
-                    <span className="text-lg leading-none">{TOKEN_ICONS[token.key]}</span>
-                    <span className="text-xs font-semibold text-[#d8b58d]">{token.symbol}</span>
+                  <div className="-my-1">
+                    <p className="font-mono text-sm font-semibold text-white truncate">
+                      {balance.replace(/[^.0-9]+/g, "")}
+                    </p>
+                    <p className="text-xs text-[#98775b] mt-0.5">{token.symbol}</p>
                   </div>
-                  <p className="font-mono text-sm font-semibold text-white truncate">
-                    {balance}
-                  </p>
-                  <p className="text-xs text-[#98775b] mt-0.5">{token.name}</p>
+                  <span className="ml-auto">{token.metadata?.logoUrl ? <Image src={token.metadata.logoUrl.href} alt={token.symbol} width={32} height={32} /> : TOKEN_ICONS[token.key]}</span>
                 </div>
               );
             })}
