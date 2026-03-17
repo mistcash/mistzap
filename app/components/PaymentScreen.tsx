@@ -5,7 +5,7 @@ import { CallData, uint256 } from "starknet";
 import { useApp } from "@/app/context/AppContext";
 import { HIDEMI_CONTRACT_ADDRESS } from "@/lib/config";
 import { truncateAddress } from "@/lib/crypto";
-import { TOKEN_LIST, TOKEN_ICONS, DEFAULT_TOKEN_KEY, type TokenKey } from "@/lib/tokens";
+import { TOKEN_LIST, TOKEN_ICONS, DEFAULT_TOKEN_KEY, type TokenKey, tokenIcon } from "@/lib/tokens";
 import FooterCredits from "./FooterCredits";
 
 type TxStatus = "idle" | "preflight" | "executing" | "success" | "error";
@@ -124,128 +124,188 @@ export default function PaymentScreen() {
         >
           <BackIcon className="h-4 w-4" />
         </button>
-        <h1 className="text-lg font-bold text-white">Make Payment</h1>
+        <h1 className="text-lg font-bold text-white">{txStatus === "success" ? "Payment Successful" : "Make Payment"}</h1>
       </header>
 
       <main className="w-full max-w-sm flex-1 space-y-5 px-5 pt-6 pb-10">
-        {/* Scanned Transaction Secret */}
-        <div className="rounded-2xl border border-[#ff9d42]/30 bg-[#ef6105]/10 p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="h-2 w-2 rounded-full bg-[#ff9d42] animate-pulse" />
-            <p className="text-xs font-semibold uppercase tracking-wider text-[#ffb66b]">
-              Scanned Transaction Secret
-            </p>
-          </div>
-          <p className="break-all font-mono text-sm text-white leading-relaxed">
-            {commitment || "—"}
-          </p>
-        </div>
+        {txStatus === "success" ? (
+          /* ===== SUCCESS SCREEN ===== */
+          <div className="flex flex-col items-center text-center pt-6 space-y-6">
+            {/* Glowing animated check */}
+            <div className="relative flex h-28 w-28 items-center justify-center">
+              <div
+                className="absolute inset-0 rounded-full bg-[#ff9d42]/20 animate-ping"
+                style={{ animationDuration: "2s" }}
+              />
+              <div
+                className="absolute inset-3 rounded-full bg-[#ff9d42]/10 animate-ping"
+                style={{ animationDuration: "2s", animationDelay: "0.4s" }}
+              />
+              <div className="relative flex h-20 w-20 items-center justify-center rounded-full border-2 border-[#ff9d42]/60 bg-[#ef6105]/15 shadow-[0_0_50px_rgba(255,126,27,0.5)]">
+                <CheckIcon className="h-10 w-10 text-[#ff9d42]" />
+              </div>
+            </div>
 
-        {/* Token selector */}
-        <div className="rounded-2xl border border-[#ff9d42]/25 bg-[#091329]/70 p-4 space-y-3">
-          <p className="text-xs font-semibold text-[#d8b58d] uppercase tracking-wider">
-            Select Token
-          </p>
-          <div className="grid grid-cols-2 gap-2">
-            {TOKEN_LIST.map((token) => {
-              const selected = token.key === selectedTokenKey;
-              const balance = tokenBalances[token.key] ?? "—";
-              return (
-                <button
-                  key={token.key}
-                  onClick={() => { setSelectedTokenKey(token.key); setAmount(""); }}
-                  disabled={busy || txStatus === "success"}
-                  className={`flex flex-col items-start gap-1 rounded-xl border p-3 text-left transition-all disabled:opacity-50 ${selected
-                    ? "border-[#ff9d42]/60 bg-[#ff9d42]/12"
-                    : "border-[#ff9d42]/20 bg-[#091329]/60 hover:bg-[#11213d]"
-                    }`}
-                >
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-base leading-none">{TOKEN_ICONS[token.key]}</span>
-                    <span className={`text-sm font-semibold ${selected ? "text-[#ffb66b]" : "text-white"}`}>
-                      {token.symbol}
-                    </span>
-                  </div>
-                  <span className="font-mono text-xs text-[#98775b] truncate w-full">
-                    {balance}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
+            {/* Heading + subtext */}
+            <div className="space-y-2">
+              <h2 className="text-2xl font-bold text-white">Sent!</h2>
+              <p className="text-sm text-[#d8b58d] leading-relaxed px-2">
+                <span className="font-semibold text-[#ffb66b]">
+                  {amount} {selectedToken.symbol}
+                </span>{" "}
+                sent for the scanned secret.<br />
+                The recipient can now claim the funds privately.
+              </p>
+            </div>
 
-        {/* Amount input */}
-        <div className="rounded-2xl border border-[#ff9d42]/25 bg-[#091329]/70 p-4 space-y-2">
-          <label className="text-xs font-semibold text-[#d8b58d] uppercase tracking-wider">
-            Amount
-          </label>
-          <div className="flex items-center gap-2 rounded-xl border border-[#ff9d42]/20 bg-[#091329]/80 px-3 py-2">
-            <input
-              type="number"
-              min="0"
-              step={selectedToken.decimals > 0 ? `0.${"0".repeat(selectedToken.decimals - 1)}1` : "1"}
-              placeholder="0.00"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              disabled={busy || txStatus === "success"}
-              className="flex-1 bg-transparent text-sm font-mono text-white placeholder-[#98775b] outline-none disabled:opacity-50"
-            />
-            <span className="text-xs font-semibold text-[#ffb66b]">
-              {TOKEN_ICONS[selectedTokenKey]} {selectedToken.symbol}
-            </span>
-          </div>
-          <p className="text-xs text-[#98775b]">
-            Balance: <span className="text-[#ffd7ae]">{tokenBalances[selectedTokenKey] ?? "—"}</span>
-          </p>
-        </div>
+            {/* Amount badge */}
+            <div className="w-full rounded-2xl border border-[#ff9d42]/40 bg-[#ff9d42]/10 px-4 py-3">
+              <p className="text-xs font-semibold uppercase tracking-wider text-[#ffb66b] mb-2">
+                Amount Deposited
+              </p>
+              <p className="text-3xl mt-4 font-bold text-white">
+                <span className="text-[#ff9d42] flex gap-2 justify-center">
+                  {tokenIcon(selectedTokenKey, "w-8 h-8")}
+                  {selectedToken.symbol}
+                  <span className="ml-auto font-normal">{amount}</span>
+                </span>
+              </p>
+            </div>
 
-        {/* TX details */}
-        <div className="rounded-2xl border border-[#ff9d42]/25 bg-[#091329]/70 p-4 space-y-3">
-          <h3 className="text-sm font-semibold text-white">Transaction Details</h3>
-          <InfoRow label="Contract" value={truncateAddress(HIDEMI_CONTRACT_ADDRESS, 8)} mono />
-          <InfoRow label="Entrypoint" value="deposit" mono />
-          <InfoRow label="Asset" value={`${selectedToken.symbol} (${truncateAddress(selectedToken.address, 6)})`} mono />
-          <InfoRow label="From" value={walletAddress ? truncateAddress(walletAddress, 8) : "—"} mono />
-          <InfoRow label="Fee mode" value={isSponsored ? "Sponsored (AVNU)" : "User pays"} />
-        </div>
-
-        {/* Status feedback */}
-        {txStatus === "success" && (
-          <div className="rounded-xl border border-[#ffb66b]/35 bg-[#ffb66b]/12 p-4">
-            <p className="text-sm font-semibold text-[#ffb66b]">Deposit submitted!</p>
+            {/* TX hash */}
             {txHash && (
-              <p className="mt-1 break-all font-mono text-xs text-[#ffe3c4]/70">{txHash}</p>
+              <div className="w-full rounded-2xl border border-[#ff9d42]/25 bg-[#091329]/70 p-4 space-y-2 text-left">
+                <p className="text-xs font-semibold uppercase tracking-wider text-[#98775b]">
+                  Transaction Hash
+                </p>
+                <p className="break-all font-mono text-xs text-[#ffd7ae]/80 leading-relaxed">
+                  {txHash}
+                </p>
+              </div>
             )}
+
+            {/* Done */}
+            <button
+              onClick={closePayment}
+              className="w-full rounded-xl bg-linear-to-r from-[#ef6105] to-[#ff9d42] py-4 text-sm font-semibold text-[#220f00] shadow-[0_0_30px_rgba(255,126,27,0.35)] transition-all hover:from-[#ff7e1b] hover:to-[#ffb66b] active:scale-[0.98]"
+            >
+              Done — Back to Home
+            </button>
+
+            <FooterCredits className="mt-2" />
           </div>
+        ) : (
+          <>
+            {/* Scanned Transaction Secret */}
+            <div className="rounded-2xl border border-[#ff9d42]/30 bg-[#ef6105]/10 p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="h-2 w-2 rounded-full bg-[#ff9d42] animate-pulse" />
+                <p className="text-xs font-semibold uppercase tracking-wider text-[#ffb66b]">
+                  Scanned Transaction Secret
+                </p>
+              </div>
+              <p className="break-all font-mono text-sm text-white leading-relaxed">
+                {commitment || "—"}
+              </p>
+            </div>
+
+            {/* Token selector */}
+            <div className="rounded-2xl border border-[#ff9d42]/25 bg-[#091329]/70 p-4 space-y-3">
+              <p className="text-xs font-semibold text-[#d8b58d] uppercase tracking-wider">
+                Select Token
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                {TOKEN_LIST.map((token) => {
+                  const selected = token.key === selectedTokenKey;
+                  const balance = tokenBalances[token.key] ?? "—";
+                  return (
+                    <button
+                      key={token.key}
+                      onClick={() => { setSelectedTokenKey(token.key); setAmount(""); }}
+                      disabled={busy}
+                      className={`flex flex-col items-start gap-1 rounded-xl border p-3 text-left transition-all disabled:opacity-50 ${selected
+                        ? "border-[#ff9d42]/60 bg-[#ff9d42]/12"
+                        : "border-[#ff9d42]/20 bg-[#091329]/60 hover:bg-[#11213d]"
+                        }`}
+                    >
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-base leading-none">{tokenIcon(token.key)}</span>
+                        <span className={`text-sm font-semibold ${selected ? "text-[#ffb66b]" : "text-white"}`}>
+                          {token.symbol}
+                        </span>
+                      </div>
+                      <span className="font-mono text-xs text-[#98775b] truncate w-full">
+                        {balance}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Amount input */}
+            <div className="rounded-2xl border border-[#ff9d42]/25 bg-[#091329]/70 p-4 space-y-2">
+              <label className="text-xs font-semibold text-[#d8b58d] uppercase tracking-wider">
+                Amount
+              </label>
+              <div className="flex items-center gap-2 rounded-xl border border-[#ff9d42]/20 bg-[#091329]/80 px-3 py-2">
+                {tokenIcon(selectedTokenKey, "w-5 h-5 -my-1 -ml-0.5")}
+                <input
+                  type="number"
+                  min="0"
+                  step={selectedToken.decimals > 0 ? `0.${"0".repeat(selectedToken.decimals - 1)}1` : "1"}
+                  placeholder="0.00"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  disabled={busy}
+                  className="flex-1 bg-transparent text-sm font-mono text-white placeholder-[#98775b] outline-none disabled:opacity-50"
+                />
+                <span className="text-xs font-semibold items-center text-[#ffb66b]">
+                  {selectedToken.symbol}
+                </span>
+              </div>
+              <p className="text-xs text-[#98775b]">
+                Balance: <span className="text-[#ffd7ae]">{tokenBalances[selectedTokenKey] ?? "—"}</span>
+              </p>
+            </div>
+
+            {/* TX details */}
+            <div className="rounded-2xl border border-[#ff9d42]/25 bg-[#091329]/70 p-4 space-y-3">
+              <h3 className="text-sm font-semibold text-white">Transaction Details</h3>
+              <InfoRow label="Contract" value={truncateAddress(HIDEMI_CONTRACT_ADDRESS, 8)} mono />
+              <InfoRow label="Entrypoint" value="deposit" mono />
+              <InfoRow label="Asset" value={`${selectedToken.symbol} (${truncateAddress(selectedToken.address, 6)})`} mono />
+              <InfoRow label="From" value={walletAddress ? truncateAddress(walletAddress, 8) : "—"} mono />
+              <InfoRow label="Fee mode" value={isSponsored ? "Sponsored (AVNU)" : "User pays"} />
+            </div>
+
+            {/* Error feedback */}
+            {txStatus === "error" && (
+              <div className="rounded-xl border border-[#ef6105]/35 bg-[#ef6105]/12 p-4">
+                <p className="text-sm font-semibold text-[#ff9d42]">Error</p>
+                <p className="mt-1 text-xs text-[#ffd7ae]/70">{errorMsg}</p>
+              </div>
+            )}
+
+            {/* Deposit button */}
+            <button
+              onClick={handleDeposit}
+              disabled={busy || !commitment || !getWallet() || !amount}
+              className="w-full rounded-xl bg-linear-to-r from-[#ef6105] to-[#ff9d42] py-4 text-sm font-semibold text-[#220f00] shadow-[0_0_30px_rgba(255,126,27,0.35)] transition-all hover:from-[#ff7e1b] hover:to-[#ffb66b] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {busy ? (
+                <span className="flex items-center justify-center gap-2">
+                  <Spinner />
+                  {txStatus === "preflight" ? "Simulating…" : "Depositing…"}
+                </span>
+              ) : (
+                `Deposit ${selectedToken.symbol}`
+              )}
+            </button>
+
+            <FooterCredits className="mt-8" />
+          </>
         )}
-
-        {txStatus === "error" && (
-          <div className="rounded-xl border border-[#ef6105]/35 bg-[#ef6105]/12 p-4">
-            <p className="text-sm font-semibold text-[#ff9d42]">Error</p>
-            <p className="mt-1 text-xs text-[#ffd7ae]/70">{errorMsg}</p>
-          </div>
-        )}
-
-        {/* Deposit button */}
-        <button
-          onClick={handleDeposit}
-          disabled={busy || txStatus === "success" || !commitment || !getWallet() || !amount}
-          className="w-full rounded-xl bg-linear-to-r from-[#ef6105] to-[#ff9d42] py-4 text-sm font-semibold text-[#220f00] shadow-[0_0_30px_rgba(255,126,27,0.35)] transition-all hover:from-[#ff7e1b] hover:to-[#ffb66b] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {busy ? (
-            <span className="flex items-center justify-center gap-2">
-              <Spinner />
-              {txStatus === "preflight" ? "Simulating…" : "Depositing…"}
-            </span>
-          ) : txStatus === "success" ? (
-            "Deposited!"
-          ) : (
-            `Deposit ${selectedToken.symbol}`
-          )}
-        </button>
-
-        <FooterCredits className="mt-8" />
       </main>
     </div>
   );
@@ -266,6 +326,14 @@ function BackIcon({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M19 12H5M12 5l-7 7 7 7" />
+    </svg>
+  );
+}
+
+function CheckIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="20 6 9 17 4 12" />
     </svg>
   );
 }
