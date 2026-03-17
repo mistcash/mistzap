@@ -7,7 +7,7 @@
 
 import { StarkSDK, OnboardStrategy } from "starkzap";
 import type { WalletInterface } from "starkzap";
-import { AVNU_API_KEY, AVNU_BASE_URL, HIDEMI_CONTRACT_ADDRESS } from "./config";
+import { AVNU_API_KEY, AVNU_BASE_URL, HIDEMI_CONTRACT_ADDRESS, PaymentActivity } from "./config";
 import { TOKEN_LIST } from "./tokens";
 import type { TokenKey } from "./tokens";
 
@@ -80,6 +80,10 @@ export async function getAllTokenBalances(wallet: WalletInterface): Promise<Toke
     }
   }
   return balances;
+}
+
+export async function getTransactionActivity(wallet: WalletInterface): Promise<PaymentActivity[]> {
+  return []
 }
 
 /**

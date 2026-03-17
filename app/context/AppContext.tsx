@@ -15,6 +15,7 @@ import {
   connectWithBraavos,
   disconnectWallet,
   getAllTokenBalances,
+  getTransactionActivity,
   type TokenBalances,
 } from "@/lib/starkzap";
 import { getQRIndex } from "@/lib/crypto";
@@ -99,6 +100,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
     // Kick off all 4 balance fetches in parallel
     const tokenBalances = await getAllTokenBalances(wallet);
+    const activity = await getTransactionActivity(wallet);
 
     setState((s) => ({
       ...s,
@@ -106,6 +108,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       walletType,
       qrIndex: getQRIndex(),
       tokenBalances,
+      activity,
       screen: "home",
       isConnecting: false,
       connectError: null,
@@ -113,7 +116,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }
 
   // On mount: Cartridge sessions are ephemeral per page load; no auto-reconnect needed.
-  useEffect(() => {}, []);
+  useEffect(() => { }, []);
 
   async function handleConnect(type: WalletType, connectFn: () => Promise<WalletInterface>) {
     setState((s) => ({ ...s, isConnecting: true, connectError: null }));
@@ -151,7 +154,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const logout = useCallback(async () => {
     if (walletRef.current) {
-      await disconnectWallet(walletRef.current).catch(() => {});
+      await disconnectWallet(walletRef.current).catch(() => { });
       walletRef.current = null;
     }
     setState((s) => ({
