@@ -5,7 +5,7 @@ export const HIDEMI_CONTRACT_ADDRESS =
 export const USDC_ADDRESS = "0x033068f6539f8e6e6b131e6b2b814e6c34a5224bc66947c47dab9dfee93b35fb";
 
 export const STARKNET_RPC_URL =
-  "https://starknet-mainnet.public.blastapi.io/rpc/v0_7";
+  "https://rpc.starknet.lava.build";
 
 export const AVNU_API_KEY = "9243c745-1170-432a-a03b-3dacac4a2e9f";
 export const AVNU_BASE_URL = "https://starknet.api.avnu.fi";
