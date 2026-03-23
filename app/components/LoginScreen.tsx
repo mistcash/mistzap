@@ -42,7 +42,7 @@ export default function LoginScreen() {
         <div className="absolute left-1/4 bottom-1/4 h-64 w-64 rounded-full bg-[#ffb66b]/10 blur-3xl" />
       </div>
 
-      <div className="relative z-10 w-full max-w-sm">
+      <div className="relative z-10 py-12 w-full max-w-sm">
         {/* Logo */}
         <div className="mb-10 flex flex-col items-center gap-3">
           <div className="flex h-20 w-20 items-center justify-center rounded-2xl shadow-[0_0_38px_rgba(255,126,27,0.45)]">

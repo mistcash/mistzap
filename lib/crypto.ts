@@ -128,7 +128,7 @@ export async function getPrivateTxActivity(wallet: WalletInterface, qrIndex: num
 
       TOKEN_LIST.forEach(t => {
         if (BigInt(t.address) === BigInt(addr)) {
-          const amount = Amount.fromRaw(amt as Bigint, t);
+          const amount = Amount.fromRaw(amt as bigint, t);
           transactions.push({
             id,
             type: "received",
