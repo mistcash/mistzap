@@ -119,7 +119,7 @@ export default function HomeScreen() {
             </div>
           ) : (
             <div className="space-y-2">
-              {activity.map((item) => (
+              {[...activity].reverse().map((item) => (
                 <ActivityRow key={item.id} item={item} />
               ))}
             </div>
