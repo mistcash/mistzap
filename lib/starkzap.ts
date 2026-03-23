@@ -7,7 +7,7 @@
 
 import { StarkSDK, OnboardStrategy } from "starkzap";
 import type { WalletInterface } from "starkzap";
-import { AVNU_API_KEY, AVNU_BASE_URL, HIDEMI_CONTRACT_ADDRESS, PaymentActivity } from "./config";
+import { AVNU_API_KEY, AVNU_BASE_URL, CORE_CONTRACT_ADDR, PaymentActivity } from "./config";
 import { TOKEN_LIST } from "./tokens";
 import type { TokenKey } from "./tokens";
 
@@ -43,7 +43,7 @@ export async function connectWithCartridge(): Promise<WalletInterface> {
       // Declare the calls this session is allowed to make without per-tx approval
       policies: [
         {
-          target: HIDEMI_CONTRACT_ADDRESS,
+          target: CORE_CONTRACT_ADDR,
           method: "deposit",
         },
       ],

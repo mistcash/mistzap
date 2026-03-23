@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { CallData, uint256 } from "starknet";
 import { useApp } from "@/app/context/AppContext";
-import { HIDEMI_CONTRACT_ADDRESS } from "@/lib/config";
+import { CORE_CONTRACT_ADDR } from "@/lib/config";
 import { truncateAddress } from "@/lib/crypto";
 import { TOKEN_LIST, TOKEN_ICONS, DEFAULT_TOKEN_KEY, type TokenKey, tokenIcon } from "@/lib/tokens";
 import FooterCredits from "./FooterCredits";
@@ -59,13 +59,13 @@ export default function PaymentScreen() {
         contractAddress: selectedToken.address,
         entrypoint: "approve",
         calldata: CallData.compile({
-          spender: HIDEMI_CONTRACT_ADDRESS,
+          spender: CORE_CONTRACT_ADDR,
           amount: amountU256,
         }),
       },
       // Step 2: deposit — locks funds behind the scanned secret commitment
       {
-        contractAddress: HIDEMI_CONTRACT_ADDRESS,
+        contractAddress: CORE_CONTRACT_ADDR,
         entrypoint: "deposit",
         calldata: CallData.compile({
           hash: hashU256,
@@ -272,7 +272,7 @@ export default function PaymentScreen() {
             {/* TX details */}
             <div className="rounded-2xl border border-[#ff9d42]/25 bg-[#091329]/70 p-4 space-y-3">
               <h3 className="text-sm font-semibold text-white">Transaction Details</h3>
-              <InfoRow label="Contract" value={truncateAddress(HIDEMI_CONTRACT_ADDRESS, 8)} mono />
+              <InfoRow label="Contract" value={truncateAddress(CORE_CONTRACT_ADDR, 8)} mono />
               <InfoRow label="Entrypoint" value="deposit" mono />
               <InfoRow label="Asset" value={`${selectedToken.symbol} (${truncateAddress(selectedToken.address, 6)})`} mono />
               <InfoRow label="From" value={walletAddress ? truncateAddress(walletAddress, 8) : "—"} mono />
